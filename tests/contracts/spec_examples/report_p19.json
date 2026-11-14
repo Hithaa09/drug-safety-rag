@@ -1,0 +1,18 @@
+{
+  "summary": "All three prescriptions need review: genotype, a drug interaction and kidney function each affect one of them.",
+  "flags_explained": [
+    {
+      "flag_id": "gene-001",
+      "plain_explanation": "Clopidogrel must be activated by CYP2C19. This patient's genotype produces little of the active form, so the guideline suggests an alternative antiplatelet.",
+      "evidence_ids": ["cpic-clopidogrel-01"]
+    }
+  ],
+  "suggestions_for_clinician_review": [
+    {
+      "text": "Consider reviewing the antiplatelet choice, as the guideline advises an alternative for poor metabolizers.",
+      "flag_id": "gene-001",
+      "evidence_ids": ["cpic-clopidogrel-01"]
+    }
+  ],
+  "uncertainties": []
+}

@@ -1,0 +1,35 @@
+# How a curated rule's severity is set: from a phrase IN THE LABEL QUOTE, never by feel.
+# Each row's `severity_basis` must be one of these phrases, must appear in its quote, and its
+# severity must equal the one listed here. A pharmacist can override with
+# `severity_override_reason` (the check then accepts a different severity and reports it).
+# Spec scale: contraindicated > major > moderate > minor.
+phrases:
+  contraindicated: contraindicated
+  discontinue: contraindicated
+  boxed warning: major            # special: the quoted chunk must be in a boxed_warning section
+  not recommended: major
+  interrupt treatment: major
+  should not be used: major
+  avoid: major
+  severe liver damage: major
+  severe stomach bleeding: major
+  increased with heavy alcohol: major
+  reduce the dosage: moderate
+  recommended starting dosage: moderate
+  initial dosage: moderate
+  assess the benefit: moderate
+  increase the risk: moderate
+  increased risk: moderate
+  may be necessary to increase: moderate
+  dose reduction: moderate
+  warn patients against: moderate
+  decreased inr response: moderate
+  increases the risk: moderate
+  may decrease phenytoin serum levels: moderate
+  closely monitor: minor
+  may enhance: minor
+  may be additive: minor
+  can interact: minor
+  cyp1a2 inhibitors include: minor
+  decreases theophylline clearance: minor
+  use caution: minor

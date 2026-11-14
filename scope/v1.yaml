@@ -1,0 +1,50 @@
+# v1 scope, from the spec (p1). Shared with Person A: if their repo has its own copy,
+# theirs is the master and this one must match it.
+version: "v1"
+# "candidate" until each drug is confirmed against CPIC coverage; then "frozen".
+status: candidate
+
+drugs:
+  - clopidogrel
+  - omeprazole
+  - pantoprazole
+  - warfarin
+  - acenocoumarol
+  - aspirin
+  - ibuprofen
+  - diclofenac
+  - celecoxib
+  - simvastatin
+  - atorvastatin
+  - rosuvastatin
+  - metformin
+  - phenytoin
+  - amlodipine
+  - codeine
+  - tramadol
+  - amitriptyline
+  - sertraline
+  - citalopram
+  - clozapine
+  - theophylline
+  - paracetamol
+  - methotrexate
+  - allopurinol
+
+genes:
+  - CYP2C19
+  - CYP2D6
+  - CYP2C9
+  - SLCO1B1
+  - VKORC1
+  - HLA-B  # added 2026-11-14 (Person A, E3): allopurinol and phenytoin, CPIC level A
+
+lab_panels:
+  - LFT
+  - CBC
+  - RFT
+
+lifestyle_inputs:
+  - smoking
+  - alcohol
+  - diet_type

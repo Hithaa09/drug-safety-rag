@@ -1,0 +1,31 @@
+# Why a v1 drug has no row in a curated table (spec: "empty cells are reviewed, not ignored").
+# verify fails if a drug has neither rows nor a note here, or has a note AND rows in that table.
+# Written 2026-11-11 after reading every renal, hepatic, blood-count and lifestyle passage of each label;
+# each specific claim was then re-checked against the label text.
+lab:
+  clopidogrel: Renal and hepatic text is descriptive only ("experience is limited"); no lab threshold.
+  omeprazole: Renal impairment doesn't change disposition (label 12.3); hepatic text uses Child-Pugh, not a lab value.
+  pantoprazole: No renal or hepatic lab threshold in the label.
+  warfarin: The relevant lab is INR, which isn't in the v1 panels (LFT, CBC, RFT).
+  acenocoumarol: No label loaded yet (French BDPM source pending Person A).
+  aspirin: OTC Drug Facts label; no lab thresholds.
+  ibuprofen: Renal and hepatic warnings are qualitative (no threshold).
+  diclofenac: Qualitative only ("advanced renal disease", "hepatic disease may require reduced doses").
+  celecoxib: Hepatic dosing uses Child-Pugh class, not a lab value; renal text is qualitative.
+  atorvastatin: Transaminase text gives incidences, not an action threshold; contraindications are qualitative.
+  phenytoin: Renal, hepatic and albumin text says monitor unbound levels; no threshold.
+  amlodipine: Hepatic text is qualitative ("titrate slowly ... severe hepatic impairment"); no lab threshold.
+  codeine: Renal and hepatic dosing is qualitative ("start with a lower dosage").
+  amitriptyline: No lab threshold in the label.
+  sertraline: Renal impairment doesn't change pharmacokinetics (label 12.3); hepatic dosing is by Child-Pugh class, not a lab value.
+  citalopram: Hepatic impairment caps the dose at 20 mg, but without a lab value (qualitative).
+  theophylline: Dosing depends on serum theophylline levels, which aren't in the v1 panels.
+  paracetamol: OTC Drug Facts label; no lab thresholds.
+lifestyle:
+  clopidogrel: No smoking, alcohol or diet passage in the label.
+  omeprazole: No smoking, alcohol or diet passage in the label.
+  pantoprazole: The label says ethanol and caffeine have no clinically relevant interaction.
+  acenocoumarol: No label loaded yet (French BDPM source pending Person A).
+  amlodipine: The label says grapefruit juice has no impact on amlodipine exposure.
+  sertraline: Alcohol is mentioned only as an ingredient of the oral solution, not as an interaction.
+  citalopram: No smoking, alcohol or diet passage in the label.

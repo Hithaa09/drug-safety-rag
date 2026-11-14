@@ -1,0 +1,9 @@
+{
+  "flag_id": "gene-001",
+  "flag_type": "gene_drug",
+  "drug": "clopidogrel",
+  "severity": "major",
+  "rule_id": "gene_drug:CYP2C19:poor_metabolizer:clopidogrel",
+  "reason": "CYP2C19 poor metabolizer: reduced activation of clopidogrel",
+  "source": "CPIC"
+}

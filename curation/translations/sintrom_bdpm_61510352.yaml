@@ -1,0 +1,315 @@
+# Acenocoumarol (SINTROM 4 mg) label passages: French original from the French public medicines
+# database (BDPM), with an English translation. Agreed with Person A on 2026-11-14 (question E2):
+# "use it with a reviewed English translation".
+#
+# - `french` is copied word for word from the BDPM page; `make verify-bdpm` checks every
+#   fragment is on the stored page. "[…]" marks list items left out because they concern no v1
+#   drug or condition; each passage's `omitted` says what was left out.
+# - `english` was translated by Claude (AI assistant to Person B) on 2026-11-14.
+# - A passage becomes evidence ONLY after a person who reads French sets `reviewed: true` and
+#   fills in `reviewed_by` and `reviewed_on`. Until then the loader skips it.
+# - Licence: Licence Ouverte / Open Licence 2.0 (Etalab), which allows adaptation and
+#   translation. Credit: source and date of last update (below, and on every chunk).
+source:
+  name: "SINTROM 4 mg, comprimé quadrisécable"
+  substance: acenocoumarol
+  cis: "61510352"
+  url: "https://base-donnees-publique.medicaments.gouv.fr/medicament/61510352/extrait"
+  updated: "2025-06-20"  # "ANSM - Mis à jour le : 20/06/2025"
+  licence: "Licence Ouverte / Open Licence 2.0 (Etalab)"
+passages:
+  - id: contraindications
+    section: "4.3 Contraindications"
+    section_key: contraindications
+    french: |-
+      4.3. Contre-indications
+      Hypersensibilité à la substance active, l’acénocoumarol (ou aux dérivés coumariniques) ou à l’un des excipients mentionnés à la rubrique 6.1.
+      Insuffisance hépatique sévère
+      Hypertension sévère
+      En cas d’association avec les médicaments ou composés suivants (voir rubrique 4.5) :
+      1. l’acide acétylsalicylique :
+      o Pour des doses anti-inflammatoires d’acide acétylsalicylique (≥ 1 g par prise et/ou ≥ 3 g par jour),
+      o Pour des doses antalgiques ou antipyrétiques (≥ 500 mg par prise et/ou < 3 g par jour) et en cas d’antécédent d’ulcère gastro-duodénal,
+      2. le miconazole utilisé par voie générale ou en gel buccal,
+      3. le millepertuis.
+      Grossesse, excepté chez les femmes enceintes portant une valve cardiaque mécanique, qui présentent un risque élevé de thromboembolie (voir rubriques 4.4 et 4.6).
+    english: |-
+      4.3 Contraindications
+      Hypersensitivity to the active substance, acenocoumarol (or to coumarin derivatives), or to any of the excipients listed in section 6.1.
+      Severe hepatic impairment
+      Severe hypertension
+      In combination with the following medicines or substances (see section 4.5):
+      1. acetylsalicylic acid:
+      o at anti-inflammatory doses of acetylsalicylic acid (≥ 1 g per dose and/or ≥ 3 g per day),
+      o at analgesic or antipyretic doses (≥ 500 mg per dose and/or < 3 g per day) and in case of a history of gastroduodenal ulcer,
+      2. miconazole used systemically or as an oral gel,
+      3. St John's wort.
+      Pregnancy, except in pregnant women with a mechanical heart valve, who are at high risk of thromboembolism (see sections 4.4 and 4.6).
+    omitted: ""
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: not-recommended
+    section: "4.4 Special warnings: generally not recommended"
+    section_key: warnings_and_precautions
+    french: |-
+      Le risque hémorragique est le principal risque d’un traitement par AVK.
+      Ce médicament est généralement déconseillé :
+      […]
+      en cas d'insuffisance rénale sévère (clairance de la créatinine < 30 ml/min),
+      en association avec (voir rubrique 4.5) :
+      o l’acide acétylsalicylique ou un de ses dérivés
+      § pour des doses antalgiques ou antipyrétiques (≥ 500 mg par prise et/ou < 3 g par jour) en l’absence d’antécédent d’ulcère gastro-duodénal,
+      § pour des doses antiagrégantes (de 50 mg à 375 mg par jour) et en cas d’antécédent d’ulcère gastro-duodénal,
+      o les AINS
+    english: |-
+      The risk of bleeding is the main risk of treatment with a vitamin K antagonist (VKA).
+      This medicine is generally not recommended:
+      […]
+      in severe renal impairment (creatinine clearance < 30 ml/min),
+      in combination with (see section 4.5):
+      o acetylsalicylic acid or one of its derivatives
+      § at analgesic or antipyretic doses (≥ 500 mg per dose and/or < 3 g per day) in the absence of a history of gastroduodenal ulcer,
+      § at antiplatelet doses (50 mg to 375 mg per day) and in case of a history of gastroduodenal ulcer,
+      o NSAIDs
+    omitted: >-
+      The list item "in case of bleeding risk" with its sub-list of risk situations, and the
+      combinations with apalutamide, defibrotide and fluoropyrimidines (no v1 drug).
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: renal-impairment
+    section: "4.4 Special warnings: renal impairment"
+    section_key: warnings_and_precautions
+    french: |-
+      Chez les patients présentant une altération de l’intégrité glomérulaire ou des antécédents de maladie rénale, une insuffisance rénale aiguë peut survenir, possiblement en lien avec des épisodes de surdosage anticoagulant et d’hématurie. Quelques cas ont été rapportés chez des patients sans antécédent de maladie rénale. Une surveillance étroite, comprenant une évaluation de la fonction rénale, est recommandée chez les patients présentant un INR suprathérapeutique et une hématurie (y compris microscopique).
+      En cas d’insuffisance rénale sévère, ce médicament est généralement déconseillé. Cependant, dans les cas où il est utilisé, les doses initiales administrées devront être plus faibles et la surveillance de l’INR plus rapprochée.
+    english: |-
+      In patients with impaired glomerular integrity or a history of kidney disease, acute renal failure may occur, possibly in connection with episodes of anticoagulant overdose and haematuria. A few cases have been reported in patients with no history of kidney disease. Close monitoring, including assessment of renal function, is recommended in patients with a supratherapeutic INR and haematuria (including microscopic haematuria).
+      In severe renal impairment, this medicine is generally not recommended. However, where it is used, the initial doses given should be lower and the INR monitored more closely.
+    omitted: ""
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: hepatic-impairment
+    section: "4.4 Precautions for use: hepatic impairment"
+    section_key: warnings_and_precautions
+    french: |-
+      La posologie sera adaptée et la surveillance accrue en cas :
+      d’insuffisance hépatique modérée,
+      d’hypoprotidémie,
+      au cours de tout évènement pathologique intercurrent, en particulier d’épisode infectieux aigu.
+    english: |-
+      The dosage will be adjusted and monitoring increased in case of:
+      moderate hepatic impairment,
+      hypoproteinaemia,
+      any intercurrent illness, in particular an acute infectious episode.
+    omitted: ""
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: vitamin-k-diet
+    section: "4.4 Special warnings: dietary vitamin K"
+    section_key: warnings_and_precautions
+    french: |-
+      L’apport en vitamine K du régime alimentaire doit être régulier, afin de ne pas perturber l’équilibre de l’INR. Les aliments les plus riches en vitamine K sont : les choux (frisé, choux de Bruxelles, chou blanc, brocolis ), les épinards, les asperges (voir rubrique 4.5).
+      Chez un patient traité par antivitamines K, il convient de contrôler l’INR à chaque initiation ou suppression d’un ou plusieurs médicaments. La modification soudaine des habitudes alimentaires doit être également prise en compte et la régularité est préconisée pour le maintien à l’équilibre de l’INR. Les aliments riches en vitamine K sont essentiellement représentés par les choux, épinards, brocolis, certaines salades.
+    english: |-
+      Dietary vitamin K intake should be regular, so as not to disturb INR stability. The foods richest in vitamin K are: cabbages (kale, Brussels sprouts, white cabbage, broccoli), spinach and asparagus (see section 4.5).
+      In a patient treated with a vitamin K antagonist, the INR should be checked each time one or more medicines are started or stopped. A sudden change in eating habits must also be taken into account, and regularity is advised to keep the INR stable. Foods rich in vitamin K are mainly cabbages, spinach, broccoli and some salad leaves.
+    omitted: "The first paragraph is from section 4.4, the second from the start of section 4.5."
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: bleeding-risk-factors
+    section: "4.4 Special warnings: bleeding"
+    section_key: warnings_and_precautions
+    french: |-
+      SINTROM peut causer des saignements majeurs (y compris un choc hémorragique et hypovolémique) ou mortels. Les facteurs de risque hémorragique comprennent : une anticoagulation intense (INR > 4,0), l’âge du patient ≥ 65 ans, des antécédents d’INR très variable, des antécédents de saignements gastro-intestinaux, une hypertension artérielle, une maladie cérébro-vasculaire, une maladie cardiaque grave, une anémie, une malignité, un traumatisme, une insuffisance rénale et la prise de traitements concomitants (voir rubrique 4.5 Interactions avec d'autres médicaments et autres formes d'interactions). Une surveillance régulière de l’INR doit être effectuée pour tous les patients.
+    english: |-
+      SINTROM can cause major (including haemorrhagic and hypovolaemic shock) or fatal bleeding. Risk factors for bleeding include: intense anticoagulation (INR > 4.0), patient age ≥ 65 years, a history of highly variable INR, a history of gastrointestinal bleeding, arterial hypertension, cerebrovascular disease, serious heart disease, anaemia, malignancy, trauma, renal impairment and concomitant treatments (see section 4.5 Interaction with other medicinal products and other forms of interaction). Regular INR monitoring must be carried out for all patients.
+    omitted: ""
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: elderly
+    section: "4.2 Posology: elderly patients"
+    section_key: dosage_and_administration
+    french: |-
+      Le traitement doit être débuté par une dose plus faible. En effet, la dose moyenne d’équilibre est plus faible chez le sujet âgé que chez le sujet jeune, habituellement ½ à ¾ de la dose (voir rubriques 4.4, 5.1 et 5.2).
+      Des précautions particulières et une surveillance biologique de l’INR plus fréquente est recommandée.
+    english: |-
+      Treatment should be started at a lower dose. The average maintenance dose is lower in elderly than in young patients, usually ½ to ¾ of the dose (see sections 4.4, 5.1 and 5.2).
+      Particular precautions and more frequent laboratory monitoring of the INR are recommended.
+    omitted: "Heading: Sujet âgé et très âgé (≥ 65 ans) / Elderly and very elderly patients (≥ 65 years)."
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: interactions-aspirin
+    section: "4.5 Interactions: acetylsalicylic acid"
+    section_key: drug_interactions
+    french: |-
+      Associations contre-indiquées
+      + Acide acétylsalicylique
+      Majoration du risque hémorragique, notamment en cas d’antécédent d’ulcère gastro-duodénal.
+      pour des doses anti-inflammatoires d’acide acétylsalicylique (≥ 1g par prise et/ou ≥ 3 g par jour)
+      pour des doses antalgiques ou antipyrétiques (≥ 500 mg par prise et/ou < 3 g par jour) et en cas d’antécédent d’ulcère gastro-duodénal.
+      Associations déconseillées
+      + Acide acétylsalicylique
+      Majoration du risque hémorragique, notamment en cas d’antécédent d’ulcère gastro-duodénal.
+      pour des doses antalgiques ou antipyrétiques (≥ 500 mg par prise et/ou < 3 g par jour) en l’absence d’antécédent d’ulcère gastro-duodénal.
+      pour des doses antiagrégantes (de 50 mg à 375 mg par jour) et en cas d’antécédent d’ulcère gastro-duodénal. Nécessité d’un contrôle le cas échéant, en particulier du temps de saignement.
+      Associations à prendre en compte
+      + Acide acétylsalicylique
+      Majoration du risque hémorragique, notamment en cas d’antécédent d’ulcère gastro-duodénal.
+      Pour des doses antiagrégantes (de 50 mg à 375 mg par jour)
+    english: |-
+      Contraindicated combinations
+      + Acetylsalicylic acid
+      Increased risk of bleeding, particularly in case of a history of gastroduodenal ulcer.
+      at anti-inflammatory doses of acetylsalicylic acid (≥ 1 g per dose and/or ≥ 3 g per day)
+      at analgesic or antipyretic doses (≥ 500 mg per dose and/or < 3 g per day) and in case of a history of gastroduodenal ulcer.
+      Combinations not recommended
+      + Acetylsalicylic acid
+      Increased risk of bleeding, particularly in case of a history of gastroduodenal ulcer.
+      at analgesic or antipyretic doses (≥ 500 mg per dose and/or < 3 g per day) in the absence of a history of gastroduodenal ulcer.
+      at antiplatelet doses (50 mg to 375 mg per day) and in case of a history of gastroduodenal ulcer. Monitoring where appropriate, in particular of bleeding time.
+      Combinations to be taken into account
+      + Acetylsalicylic acid
+      Increased risk of bleeding, particularly in case of a history of gastroduodenal ulcer.
+      At antiplatelet doses (50 mg to 375 mg per day)
+    omitted: "Three entries for acetylsalicylic acid, gathered from three places in section 4.5."
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: interactions-nsaids
+    section: "4.5 Interactions: NSAIDs"
+    section_key: drug_interactions
+    french: |-
+      Associations déconseillées
+      + AINS
+      Augmentation du risque hémorragique de l’anticoagulant oral (agression de la muqueuse gastroduodénale par les anti-inflammatoires non stéroïdiens).
+      Si l’association ne peut être évitée, surveillance clinique étroite, voire biologique.
+    english: |-
+      Combinations not recommended
+      + NSAIDs
+      Increased bleeding risk of the oral anticoagulant (damage to the gastroduodenal mucosa by non-steroidal anti-inflammatory drugs).
+      If the combination cannot be avoided, close clinical and, where appropriate, laboratory monitoring.
+    omitted: ""
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: interactions-precautions
+    section: "4.5 Interactions: combinations requiring precautions for use"
+    section_key: drug_interactions
+    french: |-
+      Associations faisant l’objet de précautions d’emploi
+      […]
+      + Allopurinol
+      Augmentation du risque hémorragique
+      Contrôle plus fréquent de l’INR. Adaptation éventuelle de la posologie de l’antivitamine K pendant le traitement par l’allopurinol et 8 jours après son arrêt.
+      […]
+      + Anticonvulsivants inducteurs enzymatiques
+      Diminution (ou, rarement, augmentation avec la phénytoïne) de l’effet de l’antivitamine K par augmentation de son métabolisme hépatique par l’anticonvulsivant inducteur.
+      Contrôle plus fréquent de l’INR. Adaptation éventuelle de la posologie de l’antivitamine K pendant le traitement par l’anticonvulsivant inducteur et 8 jours après son arrêt.
+      […]
+      + Inhibiteurs de l’HMG CoA-réductase (statines)
+      Augmentation de l’effet de l’antivitamine K et du risque hémorragique.
+      Contrôle plus fréquent de l’INR. Adaptation éventuelle de la posologie de l’antivitamine K.
+      […]
+      + Paracétamol
+      Risque d’augmentation de l’effet de l’antivitamine K et du risque hémorragique en cas de prise de paracétamol aux doses maximales (4 g/j) pendant au moins 4 jours.
+      Contrôle plus fréquent de l’INR. Adaptation éventuelle de la posologie de l’antivitamine K pendant le traitement par le paracétamol et après son arrêt.
+    english: |-
+      Combinations requiring precautions for use
+      […]
+      + Allopurinol
+      Increased risk of bleeding
+      More frequent INR monitoring. Possible adjustment of the vitamin K antagonist dosage during treatment with allopurinol and for 8 days after it is stopped.
+      […]
+      + Enzyme-inducing anticonvulsants
+      Decrease (or, rarely, increase with phenytoin) in the effect of the vitamin K antagonist through increased hepatic metabolism by the inducing anticonvulsant.
+      More frequent INR monitoring. Possible adjustment of the vitamin K antagonist dosage during treatment with the inducing anticonvulsant and for 8 days after it is stopped.
+      […]
+      + HMG-CoA reductase inhibitors (statins)
+      Increased effect of the vitamin K antagonist and increased risk of bleeding.
+      More frequent INR monitoring. Possible adjustment of the vitamin K antagonist dosage.
+      […]
+      + Paracetamol
+      Risk of an increased effect of the vitamin K antagonist and of bleeding when paracetamol is taken at maximum doses (4 g/day) for at least 4 days.
+      More frequent INR monitoring. Possible adjustment of the vitamin K antagonist dosage during treatment with paracetamol and after it is stopped.
+    omitted: "All other entries in this category (none concerns a v1 drug)."
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: interactions-bleeding
+    section: "4.5 Interactions: combinations to be taken into account"
+    section_key: drug_interactions
+    french: |-
+      Associations à prendre en compte
+      […]
+      + Antiagrégants plaquettaires
+      Augmentation du risque hémorragique.
+      […]
+      + Inhibiteurs sélectifs de la recapture de la sérotonine (citalopram, escitalopram, fluoxétine, fluvoxamine, paroxétine, sertraline)
+      Augmentation du risque hémorragique.
+      […]
+      + Médicaments mixtes adrénergiques-sérotoninergiques (amitriptyline, clomipramine, duloxétine, imipramine, milnacipran, oxitriptan, venlafaxine)
+      Augmentation du risque hémorragique
+      […]
+      + Tramadol
+      Augmentation du risque hémorragique
+    english: |-
+      Combinations to be taken into account
+      […]
+      + Antiplatelet agents
+      Increased risk of bleeding.
+      […]
+      + Selective serotonin reuptake inhibitors (citalopram, escitalopram, fluoxetine, fluvoxamine, paroxetine, sertraline)
+      Increased risk of bleeding.
+      […]
+      + Mixed adrenergic-serotonergic medicines (amitriptyline, clomipramine, duloxetine, imipramine, milnacipran, oxitriptan, venlafaxine)
+      Increased risk of bleeding
+      […]
+      + Tramadol
+      Increased risk of bleeding
+    omitted: "All other entries in this category (none concerns a v1 drug)."
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: pharmacokinetics-cyp2c9
+    section: "5.2 Pharmacokinetic properties: biotransformation"
+    section_key: clinical_pharmacology
+    french: |-
+      L’acénocoumarol est largement métabolisé. L’hydroxylation en 6- et 7- des deux énantiomères de l’acénocoumarol sont les métabolites principaux et le cytochrome P450 2C9 est le catalyseur majeur de la formation de ces 4 métabolites. Les autres enzymes impliquées dans le métabolisme du (R)-acénocoumarol sont le CYP1A2 et le CYP2C19. Par réduction du groupe keto, deux différents métabolites carbinol sont formés. La réduction du groupe nitro conduit à un amino-métabolite. La variabilité génétique liée au CYP2C9 participe à 14% de la variabilité interindividuelle de la réponse pharmacodynamique de l’acénocoumarol.
+    english: |-
+      Acenocoumarol is extensively metabolised. The 6- and 7-hydroxylated forms of the two enantiomers of acenocoumarol are the main metabolites, and cytochrome P450 2C9 is the main catalyst of the formation of these 4 metabolites. The other enzymes involved in the metabolism of (R)-acenocoumarol are CYP1A2 and CYP2C19. Reduction of the keto group forms two different carbinol metabolites. Reduction of the nitro group gives an amino metabolite. Genetic variability in CYP2C9 accounts for 14% of the inter-individual variability in the pharmacodynamic response to acenocoumarol.
+    omitted: ""
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null
+
+  - id: leaflet-food-alcohol
+    section: "Patient leaflet: food, drink and alcohol"
+    section_key: patient_information
+    french: |-
+      La vitamine K peut diminuer l’effet de ce médicament. Certains aliments contiennent de la vitamine K en grande quantité. Les aliments les plus riches en vitamine K sont : les choux (chou frisé, chou de Bruxelles, chou blanc, brocolis...), les épinards et les asperges. Ces aliments ne sont pas interdits, à condition de les répartir dans votre alimentation de manière régulière et sans excès pour ne pas diminuer l’effet de ce médicament.
+      L’alcool est à consommer avec modération puisque cela pourrait modifier le mode d’action de ce médicament.
+    english: |-
+      Vitamin K can reduce the effect of this medicine. Some foods contain large amounts of vitamin K. The foods richest in vitamin K are: cabbages (kale, Brussels sprouts, white cabbage, broccoli...), spinach and asparagus. These foods are not forbidden, provided they are spread regularly through your diet and eaten without excess, so as not to reduce the effect of this medicine.
+      Alcohol should be consumed in moderation, as it could change the way this medicine works.
+    omitted: "From the patient leaflet on the same page (not the prescriber sections): the label's only mention of alcohol."
+    reviewed: false
+    reviewed_by: null
+    reviewed_on: null

@@ -1,0 +1,189 @@
+# Synthetic example patients for the interface's "Load example" menu.
+# Copied from tests/gold/llm_cases.yaml (tests/ui checks they stay identical); synthetic only.
+examples:
+  - id: p01-worked-example
+    label: 'Spec worked example: Plavix, omeprazole, metformin'
+    patient:
+      patient_id: p01
+      age: 68
+      sex: male
+      prescriptions:
+      - name: Plavix
+        dose: 75 mg
+      - name: omeprazole
+        dose: 20 mg
+      - name: metformin
+        dose: 500 mg
+      labs:
+      - test: creatinine
+        value: 2.45
+        unit: mg/dL
+      genotypes:
+      - gene: CYP2C19
+        diplotype: '*2/*2'
+      lifestyle:
+        smoking: current
+        diet:
+          type: veg
+  - id: p02-warfarin
+    label: Warfarin with ibuprofen, CYP2C9 *3/*3, leafy greens
+    patient:
+      patient_id: p02
+      age: 74
+      sex: female
+      prescriptions:
+      - name: Coumadin
+        dose: 5 mg
+      - name: ibuprofen
+        dose: 400 mg
+      genotypes:
+      - gene: CYP2C9
+        diplotype: '*3/*3'
+      lifestyle:
+        diet:
+          type: non_veg
+          meals:
+          - spinach salad
+          - kale soup
+  - id: p03-codeine-paracetamol
+    label: Codeine and Tylenol, CYP2D6 ultrarapid, heavy alcohol
+    patient:
+      patient_id: p03
+      age: 45
+      sex: male
+      prescriptions:
+      - name: codeine
+        dose: 30 mg
+      - name: Tylenol
+        dose: 1000 mg
+      labs:
+      - test: ALT
+        value: 150
+        unit: U/L
+      genotypes:
+      - gene: CYP2D6
+        diplotype: '*1/*1xN'
+      lifestyle:
+        alcohol: heavy
+  - id: p04-simvastatin
+    label: Simvastatin with amlodipine, SLCO1B1 *5/*5
+    patient:
+      patient_id: p04
+      age: 62
+      sex: male
+      prescriptions:
+      - name: simvastatin
+        dose: 40 mg
+      - name: amlodipine
+        dose: 10 mg
+      genotypes:
+      - gene: SLCO1B1
+        diplotype: '*5/*5'
+  - id: p05-methotrexate
+    label: Methotrexate with pantoprazole, low platelets
+    patient:
+      patient_id: p05
+      age: 58
+      sex: female
+      prescriptions:
+      - name: methotrexate
+        dose: 15 mg
+        frequency: weekly
+      - name: pantoprazole
+        dose: 40 mg
+      labs:
+      - test: creatinine
+        value: 1.1
+        unit: mg/dL
+      - test: platelets
+        value: 80
+        unit: 10^3/uL
+  - id: p06-clozapine
+    label: Clozapine, low ANC, smoker
+    patient:
+      patient_id: p06
+      age: 35
+      sex: male
+      prescriptions:
+      - name: Clozaril
+        dose: 300 mg
+      labs:
+      - test: ANC
+        value: 0.8
+        unit: 10^3/uL
+      lifestyle:
+        smoking: current
+  - id: p07-atorvastatin
+    label: Lipitor, raised ALT, grapefruit juice
+    patient:
+      patient_id: p07
+      age: 55
+      sex: female
+      prescriptions:
+      - name: Lipitor
+        dose: 40 mg
+      labs:
+      - test: ALT
+        value: 150
+        unit: U/L
+      lifestyle:
+        diet:
+          type: veg
+          meals:
+          - grapefruit juice every morning
+  - id: p08-clopidogrel-ssri
+    label: Clopidogrel with Zoloft, amitriptyline, CYP2D6 *4/*4
+    patient:
+      patient_id: p08
+      age: 66
+      sex: female
+      prescriptions:
+      - name: clopidogrel
+        dose: 75 mg
+      - name: Zoloft
+        dose: 50 mg
+      - name: amitriptyline
+        dose: 25 mg
+      genotypes:
+      - gene: CYP2D6
+        diplotype: '*4/*4'
+  - id: p09-tramadol-theophylline
+    label: Tramadol, theophylline, allopurinol, smoker
+    patient:
+      patient_id: p09
+      age: 71
+      sex: male
+      prescriptions:
+      - name: tramadol
+        dose: 50 mg
+      - name: theophylline
+        dose: 300 mg
+      - name: allopurinol
+        dose: 100 mg
+      labs:
+      - test: creatinine
+        value: 1.6
+        unit: mg/dL
+      genotypes:
+      - gene: CYP2D6
+        diplotype: '*1/*2x2'
+      lifestyle:
+        smoking: current
+  - id: p10-cyp2c9-cyp2c19
+    label: Dilantin, Celebrex, citalopram, CYP2C9 and CYP2C19 poor
+    patient:
+      patient_id: p10
+      age: 50
+      sex: female
+      prescriptions:
+      - name: Dilantin
+        dose: 100 mg
+      - name: Celebrex
+        dose: 200 mg
+      - name: citalopram
+        dose: 20 mg
+      genotypes:
+      - gene: CYP2C9
+        diplotype: '*3/*3'
+      - gene: CYP2C19
+        diplotype: '*2/*2'

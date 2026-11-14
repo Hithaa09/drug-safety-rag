@@ -1,0 +1,21 @@
+# Local development database for Person B only.
+# The project's real docker-compose.yml belongs to Person A; this file is not handed over.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: drugsafety
+      POSTGRES_PASSWORD: drugsafety
+      POSTGRES_DB: drugsafety
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata_b:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U drugsafety -d drugsafety"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata_b:

@@ -1,0 +1,275 @@
+{
+  "$defs": {
+    "Diet": {
+      "additionalProperties": false,
+      "properties": {
+        "meals": {
+          "description": "Free-text meals; normalisation maps them to diet tags",
+          "items": {
+            "type": "string"
+          },
+          "title": "Meals",
+          "type": "array"
+        },
+        "type": {
+          "anyOf": [
+            {
+              "enum": [
+                "veg",
+                "non_veg"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Type"
+        }
+      },
+      "title": "Diet",
+      "type": "object"
+    },
+    "Genotype": {
+      "additionalProperties": false,
+      "properties": {
+        "diplotype": {
+          "description": "Star-allele pair, e.g. '*2/*2'",
+          "title": "Diplotype",
+          "type": "string"
+        },
+        "gene": {
+          "description": "Gene symbol, e.g. 'CYP2C19'",
+          "title": "Gene",
+          "type": "string"
+        }
+      },
+      "required": [
+        "gene",
+        "diplotype"
+      ],
+      "title": "Genotype",
+      "type": "object"
+    },
+    "LabResult": {
+      "additionalProperties": false,
+      "properties": {
+        "taken_at": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "ISO date; the latest value per test is used",
+          "title": "Taken At"
+        },
+        "test": {
+          "description": "Test name or LOINC code as entered, e.g. 'creatinine'",
+          "title": "Test",
+          "type": "string"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "test",
+        "value",
+        "unit"
+      ],
+      "title": "LabResult",
+      "type": "object"
+    },
+    "Lifestyle": {
+      "additionalProperties": false,
+      "properties": {
+        "alcohol": {
+          "anyOf": [
+            {
+              "enum": [
+                "none",
+                "occasional",
+                "regular",
+                "heavy"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Alcohol"
+        },
+        "diet": {
+          "$ref": "#/$defs/Diet"
+        },
+        "smoking": {
+          "anyOf": [
+            {
+              "enum": [
+                "never",
+                "former",
+                "current"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Smoking"
+        }
+      },
+      "title": "Lifestyle",
+      "type": "object"
+    },
+    "Prescription": {
+      "additionalProperties": false,
+      "properties": {
+        "dose": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Dose"
+        },
+        "frequency": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Frequency"
+        },
+        "name": {
+          "description": "As entered: brand, generic or NDC, e.g. 'Plavix 75'",
+          "title": "Name",
+          "type": "string"
+        },
+        "status": {
+          "anyOf": [
+            {
+              "enum": [
+                "new",
+                "ongoing"
+              ],
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Starting the drug now, or already taking it. Some labels differ (clozapine: ANC rules for starting it are stricter than for continuing). Optional (A6)",
+          "title": "Status"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "title": "Prescription",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "age": {
+      "description": "Years; needed for eGFR (CKD-EPI 2021)",
+      "maximum": 120,
+      "minimum": 0,
+      "title": "Age",
+      "type": "integer"
+    },
+    "conditions": {
+      "description": "Conditions that change a rule's threshold. benign_ethnic_neutropenia: clozapine's ANC thresholds are lower (Duffy-null). Optional (A9)",
+      "items": {
+        "const": "benign_ethnic_neutropenia",
+        "type": "string"
+      },
+      "title": "Conditions",
+      "type": "array"
+    },
+    "genotypes": {
+      "items": {
+        "$ref": "#/$defs/Genotype"
+      },
+      "title": "Genotypes",
+      "type": "array"
+    },
+    "labs": {
+      "items": {
+        "$ref": "#/$defs/LabResult"
+      },
+      "title": "Labs",
+      "type": "array"
+    },
+    "lifestyle": {
+      "$ref": "#/$defs/Lifestyle"
+    },
+    "patient_id": {
+      "title": "Patient Id",
+      "type": "string"
+    },
+    "prescriptions": {
+      "items": {
+        "$ref": "#/$defs/Prescription"
+      },
+      "minItems": 1,
+      "title": "Prescriptions",
+      "type": "array"
+    },
+    "sex": {
+      "description": "Needed for eGFR (CKD-EPI 2021)",
+      "enum": [
+        "female",
+        "male"
+      ],
+      "title": "Sex",
+      "type": "string"
+    },
+    "weight_kg": {
+      "anyOf": [
+        {
+          "exclusiveMinimum": 0,
+          "maximum": 400,
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Body weight. Lets renal rules use creatinine clearance (Cockcroft-Gault) as many labels do; without it they use eGFR and say so. Optional (A8)",
+      "title": "Weight Kg"
+    }
+  },
+  "required": [
+    "patient_id",
+    "age",
+    "sex",
+    "prescriptions"
+  ],
+  "title": "Patient",
+  "type": "object"
+}

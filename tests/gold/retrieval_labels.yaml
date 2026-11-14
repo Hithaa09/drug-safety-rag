@@ -1,0 +1,207 @@
+# Gold retrieval cases for FDA label chunks (spec: "retrieval hit rate").
+#
+# Each case is a flag the rule engine could raise, written the way the spec builds a query
+# (drug, gene or lab, and reason). `filter` is the drug filter the retriever applies first.
+# `expect` lists the passages a pharmacist would cite; a case passes if ANY chunk in the top 3
+# matches ANY expectation. An expectation names the label (`label`: the drug whose label it is)
+# and conditions on the chunk:
+#   heading: text that must appear in one of the chunk's headings (case-insensitive)
+#   text:    every item must appear in the chunk text (case-insensitive)
+# Written from clinical knowledge of where labels state each risk, BEFORE any model was run.
+cases:
+  # ---------------- gene-drug
+  - id: gene-clopidogrel-cyp2c19-pm
+    type: gene_drug
+    query: clopidogrel CYP2C19 poor metabolizer reduced activation of clopidogrel
+    filter: [clopidogrel]
+    expect:
+      - {label: clopidogrel, heading: Pharmacogenomics}
+      - {label: clopidogrel, heading: Diminished Antiplatelet Activity}
+      - {label: clopidogrel, heading: "WARNING: DIMINISHED ANTIPLATELET EFFECT"}
+  - id: gene-warfarin-cyp2c9-vkorc1
+    type: gene_drug
+    query: warfarin CYP2C9 and VKORC1 variants require a lower warfarin dose
+    filter: [warfarin]
+    expect:
+      - {label: warfarin, heading: Pharmacogenomics}
+      - {label: warfarin, text: [VKORC1, CYP2C9, dose]}
+  - id: gene-codeine-cyp2d6-um
+    type: gene_drug
+    query: codeine CYP2D6 ultrarapid metabolizer risk of morphine toxicity
+    filter: [codeine]
+    expect:
+      - {label: codeine, heading: Ultra-Rapid Metabolism}
+      - {label: codeine, text: [ultra-rapid, CYP2D6]}
+  - id: gene-tramadol-cyp2d6-um
+    type: gene_drug
+    query: tramadol CYP2D6 ultrarapid metabolizer life-threatening respiratory depression
+    filter: [tramadol]
+    expect:
+      - {label: tramadol, heading: Ultra-Rapid Metabolism}
+      - {label: tramadol, text: [ultra-rapid, CYP2D6]}
+  - id: gene-simvastatin-slco1b1
+    type: gene_drug
+    query: simvastatin SLCO1B1 decreased function increased myopathy risk
+    filter: [simvastatin]
+    expect:
+      - {label: simvastatin, text: [OATP1B1]}
+      - {label: simvastatin, heading: Myopathy}
+  - id: gene-phenytoin-cyp2c9-pm
+    type: gene_drug
+    query: phenytoin CYP2C9 poor metabolizer higher phenytoin concentrations toxicity
+    filter: [phenytoin]
+    expect:
+      - {label: phenytoin, text: [CYP2C9, poor metabolizer]}
+  - id: gene-celecoxib-cyp2c9-pm
+    type: gene_drug
+    query: celecoxib CYP2C9 poor metabolizer reduce celecoxib dose
+    filter: [celecoxib]
+    expect:
+      - {label: celecoxib, text: [CYP2C9, poor metabolizer]}
+  - id: gene-citalopram-cyp2c19-pm
+    type: gene_drug
+    query: citalopram CYP2C19 poor metabolizer maximum dose QT prolongation
+    filter: [citalopram]
+    expect:
+      - {label: citalopram, text: [CYP2C19, poor metabolizer]}
+  - id: gene-amitriptyline-cyp2d6-pm
+    type: gene_drug
+    query: amitriptyline CYP2D6 poor metabolizer higher tricyclic plasma concentrations
+    filter: [amitriptyline]
+    expect:
+      - {label: amitriptyline, text: [poor metabolizers]}
+      - {label: amitriptyline, text: [P450 2D6]}
+
+  # Added 2026-11-14 with HLA-B. Unlike the cases above, written after reading where the two
+  # labels state the HLA-B risk in their chunks (before any retrieval was run on them).
+  - id: gene-allopurinol-hlab
+    type: gene_drug
+    query: allopurinol HLA-B*58:01 positive risk of severe skin reactions
+    filter: [allopurinol]
+    expect:
+      - {label: allopurinol, heading: Pharmacogenomics, text: ["HLA-B*5801"]}
+      - {label: allopurinol, heading: Skin Rash and Hypersensitivity, text: ["HLA-B*58:01"]}
+  - id: gene-phenytoin-hlab
+    type: gene_drug
+    query: phenytoin HLA-B*15:02 positive risk of SJS/TEN
+    filter: [phenytoin]
+    expect:
+      - {label: phenytoin, heading: Serious Dermatologic Reactions, text: ["HLA-B*1502"]}
+
+  # ---------------- drug-drug
+  - id: ddi-clopidogrel-omeprazole
+    type: drug_drug
+    query: omeprazole with clopidogrel CYP2C19 inhibition reduces antiplatelet effect
+    filter: [clopidogrel, omeprazole]
+    expect:
+      - {label: clopidogrel, heading: CYP2C19 Inhibitors}
+      - {label: clopidogrel, text: [omeprazole, avoid]}
+      - {label: omeprazole, text: [clopidogrel]}
+  - id: ddi-warfarin-ibuprofen
+    type: drug_drug
+    query: ibuprofen with warfarin increased risk of serious bleeding
+    filter: [ibuprofen, warfarin]
+    expect:
+      - {label: ibuprofen, text: [warfarin, bleeding]}
+      - {label: warfarin, text: [NSAID, bleeding]}
+  - id: ddi-simvastatin-amlodipine
+    type: drug_drug
+    query: simvastatin with amlodipine increased simvastatin exposure dose limit myopathy
+    filter: [simvastatin, amlodipine]
+    expect:
+      - {label: simvastatin, text: [amlodipine]}
+      - {label: amlodipine, text: [simvastatin]}
+  - id: ddi-methotrexate-ppi
+    type: drug_drug
+    query: pantoprazole with methotrexate elevated methotrexate levels toxicity
+    filter: [pantoprazole, methotrexate]
+    expect:
+      - {label: pantoprazole, text: [methotrexate]}
+      - {label: methotrexate, text: [proton pump]}
+  - id: ddi-clopidogrel-ssri
+    type: drug_drug
+    query: sertraline with clopidogrel SSRI increased bleeding risk
+    filter: [clopidogrel, sertraline]
+    expect:
+      - {label: clopidogrel, heading: SSRIs}
+      - {label: sertraline, text: [bleeding]}
+
+  # ---------------- lab-drug
+  - id: lab-metformin-egfr
+    type: lab_drug
+    query: metformin eGFR below 30 mL/min/1.73 m2 contraindicated renal impairment lactic acidosis
+    filter: [metformin]
+    expect:
+      - {label: metformin, text: [eGFR, "30"]}
+  - id: lab-methotrexate-renal
+    type: lab_drug
+    query: methotrexate renal impairment reduced creatinine clearance increased toxicity
+    filter: [methotrexate]
+    expect:
+      - {label: methotrexate, text: [renal impairment]}
+  - id: lab-allopurinol-renal
+    type: lab_drug
+    query: allopurinol renal impairment reduced kidney function dose reduction
+    filter: [allopurinol]
+    expect:
+      # This label states renal dosing by eGFR under "Renal Impairment" (2.6 and 8.6),
+      # not by creatinine clearance; expectation fixed before any model was run.
+      - {label: allopurinol, heading: Renal Impairment}
+  - id: lab-atorvastatin-liver
+    type: lab_drug
+    query: atorvastatin elevated liver enzymes ALT AST hepatic dysfunction
+    filter: [atorvastatin]
+    expect:
+      - {label: atorvastatin, heading: Hepatic}
+      - {label: atorvastatin, text: [transaminase]}
+  - id: lab-methotrexate-cbc
+    type: lab_drug
+    query: methotrexate low platelet and white blood cell counts bone marrow suppression
+    filter: [methotrexate]
+    expect:
+      - {label: methotrexate, text: [myelosuppression]}
+      - {label: methotrexate, text: [bone marrow]}
+  - id: lab-clozapine-anc
+    type: lab_drug
+    query: clozapine low absolute neutrophil count ANC severe neutropenia
+    filter: [clozapine]
+    expect:
+      - {label: clozapine, text: [neutropenia, ANC]}
+  - id: lab-paracetamol-liver
+    type: lab_drug
+    query: paracetamol acetaminophen liver disease severe liver damage
+    filter: [paracetamol]
+    expect:
+      - {label: paracetamol, text: [liver]}
+
+  # ---------------- lifestyle-drug
+  - id: life-clozapine-smoking
+    type: lifestyle_drug
+    query: clozapine smoking CYP1A2 induction lower clozapine levels
+    filter: [clozapine]
+    expect:
+      - {label: clozapine, text: [smok]}
+  - id: life-theophylline-smoking
+    type: lifestyle_drug
+    query: theophylline smoking increases theophylline clearance
+    filter: [theophylline]
+    expect:
+      - {label: theophylline, text: [smok]}
+  - id: life-atorvastatin-grapefruit
+    type: lifestyle_drug
+    query: atorvastatin grapefruit juice increases atorvastatin exposure
+    filter: [atorvastatin]
+    expect:
+      - {label: atorvastatin, text: [grapefruit]}
+  - id: life-warfarin-vitamin-k
+    type: lifestyle_drug
+    query: warfarin diet high in vitamin K changes INR response
+    filter: [warfarin]
+    expect:
+      - {label: warfarin, text: [vitamin K]}
+  - id: life-paracetamol-alcohol
+    type: lifestyle_drug
+    query: paracetamol acetaminophen alcohol three or more drinks daily liver damage
+    filter: [paracetamol]
+    expect:
+      - {label: paracetamol, text: [drinks]}

@@ -1,0 +1,342 @@
+# Words the "no extra drug names" check (validator rule 4) must NOT treat as drug names.
+#
+# The check looks for every prescribable RxNorm ingredient (IN) and brand (BN) name
+# (`make fetch-drug-names`). Some of those names are ordinary words, nutrients or lab analytes
+# ("water", "iron", "glucose", "creatinine", "align", "react"), which would reject normal text.
+#
+# How this list was made (2026-11-11): every prescribable IN/BN name that is also an English
+# dictionary word (macOS /usr/share/dict/words) was listed, then the names that are clearly
+# medicines were taken back out by hand (`kept_as_drugs`, so morphine, heparin, lithium, Demerol
+# are still caught). Vitamins are ignored because diet flags (e.g. vitamin K and warfarin) name
+# them. Ethanol and nicotine are lifestyle factors, not prescriptions.
+# 237 ingredient + 30 brand + 11 vitamin names ignored.
+#
+# To change: edit by hand, then `make fetch-drug-names verify-drug-names`.
+
+kept_as_drugs:   # dictionary words that ARE medicines: still detected (for the record)
+  ingredients: [amphetamine, apomorphine, aspirin, atropine, bacitracin, benzocaine, caffeine, chloramphenicol, chloroquine, cocaine, codeine, colchicine, cortisone, diethylstilbestrol, ephedrine, epinephrine, ergotamine, estradiol, estriol, gramicidin, heparin, hyaluronidase, hyoscyamine, lindane, lithium, methadone, methenamine, morphine, nitroglycerin, nitroprusside, opium, oxytocin, pancreatin, papaverine, pentobarbital, phenobarbital, physostigmine, pilocarpine, procaine, progesterone, pseudoephedrine, quinidine, quinine, salicylamide, scopolamine, streptomycin, sulfadiazine, sulfathiazole, testosterone, theophylline, yohimbine]
+  brands: [adoxa, adrenalin, amidate, amytal, antara, demerol, dilantin, doxy, dramamine, emend, flector, forane, neffy, nembutal, soma, tenuate, trental]
+
+ignore:
+  vitamins:
+  - vitamin a
+  - vitamin b complex
+  - vitamin b12
+  - vitamin b6
+  - vitamin d
+  - vitamin e
+  - vitamin k
+  - vitamin k1
+  - vitamin k2
+  - vitamin mk6
+  - vitamin mk7
+  ingredients:
+  - acetaldehyde
+  - acetoin
+  - acetone
+  - acetylcellulose
+  - acetylcholine
+  - adenosine
+  - agar
+  - air
+  - alanine
+  - allantoin
+  - aluminum
+  - amber
+  - ammonia
+  - amylase
+  - amylopectin
+  - arbutin
+  - arginine
+  - asparagine
+  - aspartate
+  - azelate
+  - azulene
+  - beeswax
+  - bentonite
+  - benzaldehyde
+  - benzoate
+  - benzophenone
+  - betaine
+  - betulin
+  - biotin
+  - bismuth
+  - borneol
+  - boron
+  - bran
+  - butane
+  - calamine
+  - calcium
+  - camphor
+  - cantharidin
+  - capsaicin
+  - carnosine
+  - caryophyllene
+  - cedrol
+  - cellulose
+  - ceresin
+  - chlorine
+  - chlorocresol
+  - chloroform
+  - chlorophyll
+  - cholesterol
+  - choline
+  - chrysin
+  - chymotrypsin
+  - citral
+  - cochineal
+  - collagen
+  - copper
+  - coumarin
+  - creatine
+  - creatinine
+  - creosol
+  - creosote
+  - cresol
+  - curcumin
+  - cyclohexane
+  - cyclopentanone
+  - cysteine
+  - diethanolamine
+  - diosmin
+  - dioxane
+  - ergothioneine
+  - erythritol
+  - ethanol
+  - ethanolamine
+  - ethylenediamine
+  - eucalyptol
+  - eugenol
+  - farnesol
+  - fibrinogen
+  - flavone
+  - fluorescein
+  - formaldehyde
+  - fructose
+  - galactose
+  - gamboge
+  - gelatin
+  - genistein
+  - geraniol
+  - glucosamine
+  - glucose
+  - glutamine
+  - glutathione
+  - glycerin
+  - glycine
+  - glycolate
+  - glyoxal
+  - guaiac
+  - guaiacol
+  - helium
+  - hemin
+  - hemp
+  - heptane
+  - hesperidin
+  - hexadecane
+  - hexylresorcinol
+  - histamine
+  - histidine
+  - hydantoin
+  - hydroquinone
+  - hydrotalcite
+  - hypochlorite
+  - indigo
+  - inositol
+  - inulin
+  - iodine
+  - iron
+  - isobutane
+  - isobutylene
+  - isoleucine
+  - isoprene
+  - jasmone
+  - kaolin
+  - lactase
+  - lactate
+  - lactose
+  - lanolin
+  - lecithin
+  - leucine
+  - licorice
+  - lipase
+  - lutein
+  - lycopene
+  - lysine
+  - lysozyme
+  - magnesium
+  - maltodextrin
+  - maltose
+  - manganese
+  - mannitol
+  - mannose
+  - menthol
+  - metacresol
+  - methionine
+  - mica
+  - molasses
+  - molybdenum
+  - myrcene
+  - naphtha
+  - niacin
+  - nicotine
+  - nitrocellulose
+  - nitrogen
+  - oxygen
+  - oxyquinoline
+  - pantothenate
+  - papain
+  - paraffin
+  - pectin
+  - pentaerythritol
+  - perlite
+  - petrolatum
+  - phenol
+  - phenylalanine
+  - pinene
+  - piperazine
+  - piperine
+  - piperonal
+  - podophyllin
+  - potassium
+  - proflavine
+  - proline
+  - propane
+  - propolis
+  - propylene
+  - protease
+  - prothrombin
+  - psyllium
+  - pumice
+  - pyridoxine
+  - pyrogallol
+  - pyruvate
+  - quercetin
+  - radium
+  - resorcinol
+  - rhamnose
+  - riboflavin
+  - rosin
+  - rutin
+  - saccharin
+  - samarium
+  - sarcosine
+  - selenite
+  - selenium
+  - serine
+  - shellac
+  - silicon
+  - silver
+  - sodium
+  - sorbitol
+  - squalene
+  - starch
+  - strontium
+  - styrene
+  - succinate
+  - sucrose
+  - talc
+  - tartrazine
+  - taurine
+  - terpineol
+  - terpinolene
+  - thiamine
+  - threonine
+  - thrombin
+  - thymol
+  - titanium
+  - tocopherol
+  - tragacanth
+  - trehalose
+  - tridecane
+  - triethanolamine
+  - triethylamine
+  - trimyristin
+  - triolein
+  - tripalmitin
+  - tristearin
+  - tryptophan
+  - turpentine
+  - tyrosine
+  - undecane
+  - urea
+  - valine
+  - vanadium
+  - vanillin
+  - water
+  - xylitol
+  - zein
+  - zinc
+  - zirconium
+  brands:
+  - align
+  - avar
+  - beano
+  - cresylate
+  - dragon
+  - ella
+  - exoderm
+  - fungoid
+  - glutose
+  - hematogen
+  - hemocyte
+  - idose
+  - julie
+  - kirsty
+  - kitabis
+  - listerine
+  - muse
+  - perform
+  - peroxyl
+  - prolate
+  - pronto
+  - react
+  - resinol
+  - rid
+  - sojourn
+  - tabloid
+  - tandem
+  - thrive
+  - vanquish
+  - vaseline
+  # Found 2026-11-11 by running the finder over all 8,549 evidence chunks and reading every
+  # name it reported (444 distinct). These are body chemistry, clotting factors, hormones,
+  # foods and lab chemicals as the evidence uses them, not something a patient is prescribed;
+  # salicylic acid is aspirin's metabolite. Every other reported name was a real medicine.
+  physiology_food_chemicals:
+  - protein c
+  - protein s
+  - factor vii
+  - factor ix
+  - factor x
+  - factor xiii
+  - antithrombin iii
+  - plasminogen
+  - angiotensin ii
+  - dopamine
+  - norepinephrine
+  - nitric oxide
+  - carbon dioxide
+  - uridine
+  - adenosine triphosphate
+  - calcium ion
+  - intrinsic factor
+  - parathyroid hormone
+  - luteinizing hormone
+  - follicle stimulating hormone
+  - immunoglobulin g
+  - hydrogen peroxide
+  - propionic acid
+  - acetic acid
+  - methanol
+  - salicylic acid
+  - apple juice
+  - orange juice
+  # Brand names that are also abbreviations in label tables and papers ("IBU = Ibuprofen").
+  abbreviation_brands:
+  - ibu
+  - ssd
+  - s-2
+  - c-time
+  - doral
+  - morning after

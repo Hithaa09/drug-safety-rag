@@ -1,0 +1,6 @@
+# Diet tags a lifestyle_drug rule may use (spec: meals become tags at ingestion).
+# Person A's normaliser maps each meal to these tags; this list is the agreed vocabulary.
+tags:
+  grapefruit: Grapefruit or grapefruit juice
+  high_vitamin_k: Foods high in vitamin K (leafy greens such as spinach, kale, methi/fenugreek leaves)
+  caffeine: Coffee, tea, cola, energy drinks

@@ -1,0 +1,62 @@
+# The 26 gold retrieval cases written as real Flags (draft contract), the way the rule engine
+# would emit them: short engine-style reasons, not hand-tuned search queries. The retriever
+# builds its own query with flag.query_text() and filter with flag.drug_ids().
+# Expectations are taken from tests/gold/retrieval_labels.yaml by `case` id.
+flags:
+  - case: gene-clopidogrel-cyp2c19-pm
+    flag: {flag_id: gene-001, flag_type: gene_drug, drug: clopidogrel, severity: major, rule_id: "gene_drug:CYP2C19:poor_metabolizer:clopidogrel", reason: "CYP2C19 poor metabolizer: reduced activation of clopidogrel", source: CPIC, gene: CYP2C19, phenotype: poor metabolizer}
+  - case: gene-warfarin-cyp2c9-vkorc1
+    flag: {flag_id: gene-002, flag_type: gene_drug, drug: warfarin, severity: major, rule_id: "gene_drug:CYP2C9:poor_metabolizer:warfarin", reason: "CYP2C9 poor metabolizer: lower warfarin dose requirement", source: CPIC, gene: CYP2C9, phenotype: poor metabolizer}
+  - case: gene-codeine-cyp2d6-um
+    flag: {flag_id: gene-003, flag_type: gene_drug, drug: codeine, severity: major, rule_id: "gene_drug:CYP2D6:ultrarapid_metabolizer:codeine", reason: "CYP2D6 ultrarapid metabolizer: risk of morphine toxicity", source: CPIC, gene: CYP2D6, phenotype: ultrarapid metabolizer}
+  - case: gene-tramadol-cyp2d6-um
+    flag: {flag_id: gene-004, flag_type: gene_drug, drug: tramadol, severity: major, rule_id: "gene_drug:CYP2D6:ultrarapid_metabolizer:tramadol", reason: "CYP2D6 ultrarapid metabolizer: risk of respiratory depression", source: CPIC, gene: CYP2D6, phenotype: ultrarapid metabolizer}
+  - case: gene-simvastatin-slco1b1
+    flag: {flag_id: gene-005, flag_type: gene_drug, drug: simvastatin, severity: major, rule_id: "gene_drug:SLCO1B1:poor_function:simvastatin", reason: "SLCO1B1 poor function: increased risk of myopathy", source: CPIC, gene: SLCO1B1, phenotype: poor function}
+  - case: gene-phenytoin-cyp2c9-pm
+    flag: {flag_id: gene-006, flag_type: gene_drug, drug: phenytoin, severity: major, rule_id: "gene_drug:CYP2C9:poor_metabolizer:phenytoin", reason: "CYP2C9 poor metabolizer: higher phenytoin levels and toxicity", source: CPIC, gene: CYP2C9, phenotype: poor metabolizer}
+  - case: gene-celecoxib-cyp2c9-pm
+    flag: {flag_id: gene-007, flag_type: gene_drug, drug: celecoxib, severity: moderate, rule_id: "gene_drug:CYP2C9:poor_metabolizer:celecoxib", reason: "CYP2C9 poor metabolizer: reduced celecoxib clearance", source: CPIC, gene: CYP2C9, phenotype: poor metabolizer}
+  - case: gene-citalopram-cyp2c19-pm
+    flag: {flag_id: gene-008, flag_type: gene_drug, drug: citalopram, severity: moderate, rule_id: "gene_drug:CYP2C19:poor_metabolizer:citalopram", reason: "CYP2C19 poor metabolizer: higher citalopram levels, QT risk", source: CPIC, gene: CYP2C19, phenotype: poor metabolizer}
+  - case: gene-amitriptyline-cyp2d6-pm
+    flag: {flag_id: gene-009, flag_type: gene_drug, drug: amitriptyline, severity: moderate, rule_id: "gene_drug:CYP2D6:poor_metabolizer:amitriptyline", reason: "CYP2D6 poor metabolizer: higher amitriptyline levels", source: CPIC, gene: CYP2D6, phenotype: poor metabolizer}
+  # Added 2026-11-14 with HLA-B (Person A, E3). phenotype = the allele result (proposal A10).
+  - case: gene-allopurinol-hlab
+    flag: {flag_id: gene-010, flag_type: gene_drug, drug: allopurinol, severity: contraindicated, rule_id: "gene_drug:HLA-B:58_01_positive:allopurinol", reason: "HLA-B*58:01 carrier: risk of severe skin reactions (SJS/TEN, DRESS)", source: CPIC, gene: HLA-B, phenotype: "HLA-B*58:01 positive"}
+  - case: gene-phenytoin-hlab
+    flag: {flag_id: gene-011, flag_type: gene_drug, drug: phenytoin, severity: major, rule_id: "gene_drug:HLA-B:15_02_positive:phenytoin", reason: "HLA-B*15:02 carrier: risk of SJS/TEN", source: CPIC, gene: HLA-B, phenotype: "HLA-B*15:02 positive"}
+  - case: ddi-clopidogrel-omeprazole
+    flag: {flag_id: ddi-001, flag_type: drug_drug, drug: clopidogrel, severity: major, rule_id: "drug_drug:clopidogrel:omeprazole", reason: "Omeprazole inhibits CYP2C19 and reduces clopidogrel's antiplatelet effect", source: DDInter, interacting_drug: omeprazole}
+  - case: ddi-warfarin-ibuprofen
+    flag: {flag_id: ddi-002, flag_type: drug_drug, drug: ibuprofen, severity: major, rule_id: "drug_drug:ibuprofen:warfarin", reason: "NSAID with warfarin: increased bleeding risk", source: DDInter, interacting_drug: warfarin}
+  - case: ddi-simvastatin-amlodipine
+    flag: {flag_id: ddi-003, flag_type: drug_drug, drug: simvastatin, severity: moderate, rule_id: "drug_drug:amlodipine:simvastatin", reason: "Amlodipine increases simvastatin exposure: myopathy risk", source: DDInter, interacting_drug: amlodipine}
+  - case: ddi-methotrexate-ppi
+    flag: {flag_id: ddi-004, flag_type: drug_drug, drug: methotrexate, severity: moderate, rule_id: "drug_drug:methotrexate:pantoprazole", reason: "Proton pump inhibitor may raise methotrexate levels", source: DDInter, interacting_drug: pantoprazole}
+  - case: ddi-clopidogrel-ssri
+    flag: {flag_id: ddi-005, flag_type: drug_drug, drug: clopidogrel, severity: moderate, rule_id: "drug_drug:clopidogrel:sertraline", reason: "SSRI with antiplatelet: increased bleeding risk", source: DDInter, interacting_drug: sertraline}
+  - case: lab-metformin-egfr
+    flag: {flag_id: lab-001, flag_type: lab_drug, drug: metformin, severity: contraindicated, rule_id: "lab_drug:egfr:lt30:metformin", reason: "eGFR below 30: metformin contraindicated", source: label, lab: {measure: egfr, value: 28, unit: mL/min/1.73m2, operator: "<", threshold: 30}}
+  - case: lab-methotrexate-renal
+    flag: {flag_id: lab-002, flag_type: lab_drug, drug: methotrexate, severity: minor, rule_id: "lab_drug:egfr:lt90:methotrexate", reason: "Renal impairment: monitor methotrexate adverse reactions", source: label, lab: {measure: egfr, value: 55, unit: mL/min/1.73m2, operator: "<", threshold: 90}}
+  - case: lab-allopurinol-renal
+    flag: {flag_id: lab-003, flag_type: lab_drug, drug: allopurinol, severity: moderate, rule_id: "lab_drug:egfr:le60:allopurinol", reason: "Reduced kidney function: lower allopurinol starting dose", source: label, lab: {measure: egfr, value: 45, unit: mL/min/1.73m2, operator: "<=", threshold: 60}}
+  - case: lab-atorvastatin-liver
+    flag: {flag_id: lab-004, flag_type: lab_drug, drug: atorvastatin, severity: moderate, rule_id: "lab_drug:alt:gt3uln:atorvastatin", reason: "Raised liver enzymes on atorvastatin", source: label, lab: {measure: alt, value: 150, unit: U/L, operator: ">", threshold: 120}}
+  - case: lab-methotrexate-cbc
+    flag: {flag_id: lab-005, flag_type: lab_drug, drug: methotrexate, severity: major, rule_id: "lab_drug:platelets:lt100:methotrexate", reason: "Low platelet count on methotrexate: bone marrow suppression", source: label, lab: {measure: platelets, value: 80, unit: 10^3/uL, operator: "<", threshold: 100}}
+  - case: lab-clozapine-anc
+    flag: {flag_id: lab-006, flag_type: lab_drug, drug: clozapine, severity: major, rule_id: "lab_drug:anc:lt1:clozapine", reason: "ANC below 1000/µL: clozapine moderate neutropenia", source: label, lab: {measure: anc, value: 0.8, unit: 10^3/uL, operator: "<", threshold: 1.0}}
+  - case: lab-paracetamol-liver
+    flag: {flag_id: lab-007, flag_type: lab_drug, drug: paracetamol, severity: major, rule_id: "lab_drug:alt:gt3uln:paracetamol", reason: "Raised liver enzymes: acetaminophen liver damage risk", source: label, lab: {measure: alt, value: 150, unit: U/L, operator: ">", threshold: 120}}
+  - case: life-clozapine-smoking
+    flag: {flag_id: life-001, flag_type: lifestyle_drug, drug: clozapine, severity: moderate, rule_id: "lifestyle_drug:smoking:current:clozapine", reason: "Smoking induces CYP1A2: lower clozapine levels", source: label, lifestyle: {factor_type: smoking, factor_value: current}}
+  - case: life-theophylline-smoking
+    flag: {flag_id: life-002, flag_type: lifestyle_drug, drug: theophylline, severity: moderate, rule_id: "lifestyle_drug:smoking:current:theophylline", reason: "Smoking increases theophylline clearance", source: label, lifestyle: {factor_type: smoking, factor_value: current}}
+  - case: life-atorvastatin-grapefruit
+    flag: {flag_id: life-003, flag_type: lifestyle_drug, drug: atorvastatin, severity: major, rule_id: "lifestyle_drug:diet_tag:grapefruit:atorvastatin", reason: "Grapefruit juice raises atorvastatin levels", source: label, lifestyle: {factor_type: diet_tag, factor_value: grapefruit}}
+  - case: life-warfarin-vitamin-k
+    flag: {flag_id: life-004, flag_type: lifestyle_drug, drug: warfarin, severity: moderate, rule_id: "lifestyle_drug:diet_tag:high_vitamin_k:warfarin", reason: "High vitamin K diet reduces warfarin effect (INR)", source: label, lifestyle: {factor_type: diet_tag, factor_value: high_vitamin_k}}
+  - case: life-paracetamol-alcohol
+    flag: {flag_id: life-005, flag_type: lifestyle_drug, drug: paracetamol, severity: major, rule_id: "lifestyle_drug:alcohol:heavy:paracetamol", reason: "Heavy alcohol use with acetaminophen: severe liver damage", source: label, lifestyle: {factor_type: alcohol, factor_value: heavy}}

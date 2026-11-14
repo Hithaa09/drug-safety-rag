@@ -1,0 +1,470 @@
+# DRAFT rules curated from FDA label text by Person B (2026-11-11). Not used for flags until
+# each row is reviewed: set status: approved, reviewed_by and reviewed_on (see curation/README.md).
+# Checked by `make verify-curation`.
+rules:
+- rule_id: lifestyle_drug:smoking:current:clozapine
+  drug: clozapine
+  rxcui: '2626'
+  factor_type: smoking
+  factor_values:
+  - current
+  effect: Lower clozapine levels and effect; a higher dose may be needed
+  mechanism: Tobacco smoke induces CYP1A2
+  severity: moderate
+  severity_basis: may be necessary to increase
+  evidence:
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:002
+    quote: Tobacco smoke is a moderate inducer of CYP1A2.
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:002
+    quote: It may be necessary to increase the CLOZARIL dose if used concomitantly with inducers of these
+      enzymes.
+  status: draft
+  notes: Stopping smoking raises levels again; the label advises considering a dose reduction when inducers
+    stop.
+- rule_id: lifestyle_drug:smoking:current:theophylline
+  drug: theophylline
+  rxcui: '10438'
+  factor_type: smoking
+  factor_values:
+  - current
+  effect: Faster theophylline clearance (about 50-80%); dose needs and levels change
+  mechanism: Tobacco smoking induces theophylline metabolism
+  severity: moderate
+  severity_basis: dose reduction
+  evidence:
+  - chunk_id: dailymed:882657ae-e15b-4c86-a571-b55460bd4726:clinical_pharmacology:021
+    quote: Tobacco and marijuana smoking appears to increase the clearance of theophylline by induction
+      of metabolic pathways.
+  - chunk_id: dailymed:882657ae-e15b-4c86-a571-b55460bd4726:clinical_pharmacology:021
+    quote: Careful attention to dose reduction and frequent monitoring of serum theophylline concentrations
+      are required in patients who stop smoking
+  status: draft
+  notes: Recent quitters ('former') need dose reduction; the contract can't tell recent from long-ago
+    quitting.
+- rule_id: lifestyle_drug:alcohol:heavy:theophylline
+  drug: theophylline
+  rxcui: '10438'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Higher theophylline levels after a large dose of alcohol
+  mechanism: Alcohol decreases theophylline clearance for up to 24 hours
+  severity: minor
+  severity_basis: decreases theophylline clearance
+  evidence:
+  - chunk_id: dailymed:882657ae-e15b-4c86-a571-b55460bd4726:precautions:008
+    quote: A single large dose of alcohol (3 mL/kg of whiskey) decreases theophylline clearance for up
+      to 24 hours
+  status: draft
+  review_flags:
+  - Label describes a single large dose of alcohol (an acute binge), not chronic heavy drinking. Mapping
+    to 'heavy' is a judgement call.
+- rule_id: lifestyle_drug:diet_tag:grapefruit:simvastatin
+  drug: simvastatin
+  rxcui: '36567'
+  factor_type: diet_tag
+  factor_values:
+  - grapefruit
+  effect: Higher simvastatin levels; more myopathy and rhabdomyolysis
+  mechanism: Grapefruit juice inhibits CYP3A4
+  severity: major
+  severity_basis: avoid
+  evidence:
+  - chunk_id: dailymed:8f55d5de-5a4f-4a39-8c84-c53976dd6af9:drug_interactions:006
+    quote: Avoid grapefruit juice when taking ZOCOR.
+  - chunk_id: dailymed:8f55d5de-5a4f-4a39-8c84-c53976dd6af9:drug_interactions:006
+    quote: Grapefruit juice can raise the plasma levels of simvastatin and may increase the risk of myopathy
+      and rhabdomyolysis.
+  status: draft
+- rule_id: lifestyle_drug:diet_tag:grapefruit:atorvastatin
+  drug: atorvastatin
+  rxcui: '83367'
+  factor_type: diet_tag
+  factor_values:
+  - grapefruit
+  effect: Higher atorvastatin levels with large quantities (more than 1.2 L daily)
+  mechanism: Grapefruit juice inhibits CYP3A4
+  severity: major
+  severity_basis: avoid
+  evidence:
+  - chunk_id: dailymed:a60cc18b-0631-4cf0-b021-9f52224ece65:drug_interactions:007
+    quote: Avoid intake of large quantities of grapefruit juice, more than 1.2 liters daily, when taking
+      LIPITOR.
+  status: draft
+  notes: The label limits the warning to more than 1.2 L daily; a meal tag can't capture quantity.
+  review_flags:
+  - Label warns only above 1.2 L of grapefruit juice a day; a meal tag can't record quantity, so this
+    would fire as major for any grapefruit. Consider a lower severity (severity_override_reason).
+- rule_id: lifestyle_drug:diet_tag:high_vitamin_k:warfarin
+  drug: warfarin
+  rxcui: '11289'
+  factor_type: diet_tag
+  factor_values:
+  - high_vitamin_k
+  effect: Decreased INR response (less anticoagulation) with increased vitamin K intake
+  mechanism: Vitamin K antagonises warfarin
+  severity: moderate
+  severity_basis: decreased inr response
+  evidence:
+  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:warnings_and_precautions:005
+    quote: 'decreasedINR response: increased vitamin K intake or hereditary warfarin resistance.'
+  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:dosage_and_administration:007
+    quote: JANTOVEN has a narrow therapeutic range (index), and its action may be affected by factors
+      such as other drugs and dietary vitamin K.
+  status: draft
+  notes: The first quote is the label text as parsed ('decreasedINR' has no space in the source).
+- rule_id: lifestyle_drug:diet_tag:grapefruit:warfarin
+  drug: warfarin
+  rxcui: '11289'
+  factor_type: diet_tag
+  factor_values:
+  - grapefruit
+  effect: Possible change in warfarin effect
+  mechanism: CYP450 interaction
+  severity: minor
+  severity_basis: can interact
+  evidence:
+  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:drug_interactions:006
+    quote: Some botanicals and foods can interact with JANTOVEN through CYP450 interactions (e.g., echinacea,
+      grapefruit juice, ginkgo, goldenseal, St.
+  status: draft
+- rule_id: lifestyle_drug:diet_tag:caffeine:clozapine
+  drug: clozapine
+  rxcui: '2626'
+  factor_type: diet_tag
+  factor_values:
+  - caffeine
+  effect: Higher clozapine levels
+  mechanism: Caffeine is a CYP1A2 inhibitor
+  severity: minor
+  severity_basis: cyp1a2 inhibitors include
+  evidence:
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:001
+    quote: Moderate or weak CYP1A2 inhibitors include oral contraceptives and caffeine.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:heavy:paracetamol
+  drug: paracetamol
+  rxcui: '161'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Severe liver damage
+  mechanism: Alcohol with acetaminophen increases hepatotoxicity
+  severity: major
+  severity_basis: severe liver damage
+  evidence:
+  - chunk_id: dailymed:5ed756b6-dbab-e742-e063-6294a90a27f3:warnings:001
+    quote: Severe liver damage may occur if you take
+  - chunk_id: dailymed:5ed756b6-dbab-e742-e063-6294a90a27f3:warnings:001
+    quote: 3 or more alcoholic drinks every day while using this product
+  status: draft
+  notes: The label's threshold is 3 or more drinks a day; mapped to alcohol = heavy. The contract has
+    no drinks-per-day field.
+  review_flags:
+  - Label threshold is 3 or more drinks a day, mapped to 'heavy'; the contract has no drinks-per-day field.
+- rule_id: lifestyle_drug:alcohol:heavy:aspirin
+  drug: aspirin
+  rxcui: '1191'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Higher chance of severe stomach bleeding
+  mechanism: Alcohol adds to aspirin's gastrointestinal bleeding risk
+  severity: major
+  severity_basis: severe stomach bleeding
+  evidence:
+  - chunk_id: dailymed:39e142a7-8590-4e1e-8319-6904fb57cc8a:warnings:001
+    quote: 'Stomach bleeding warning: This product contains an NSAID, which may cause severe stomach bleeding.
+      The chance is higher if you'
+  - chunk_id: dailymed:39e142a7-8590-4e1e-8319-6904fb57cc8a:warnings:001
+    quote: have 3 or more alcoholic drinks every day while using this product
+  status: draft
+  notes: OTC Drug Facts label. Mapped '3 or more alcoholic drinks every day' to alcohol = heavy.
+  review_flags:
+  - Label threshold is 3 or more drinks a day, mapped to 'heavy'; the contract has no drinks-per-day field.
+- rule_id: lifestyle_drug:alcohol:heavy:metformin
+  drug: metformin
+  rxcui: '6809'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Higher risk of lactic acidosis
+  mechanism: Alcohol potentiates metformin's effect on lactate metabolism
+  severity: moderate
+  severity_basis: warn patients against
+  evidence:
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:warnings_and_precautions:003
+    quote: Alcohol potentiates the effect of metformin on lactate metabolism, and this may increase the
+      risk of metformin-associated lactic acidosis.
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:warnings_and_precautions:003
+    quote: Warn patients against excessive alcohol intake while receiving GLUMETZA.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:heavy:methotrexate
+  drug: methotrexate
+  rxcui: '6851'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Higher risk of liver toxicity
+  mechanism: Additive hepatotoxicity
+  severity: major
+  severity_basis: increased with heavy alcohol
+  evidence:
+  - chunk_id: dailymed:e942f8db-510f-44d6-acb5-b822196f5e8c:warnings_and_precautions:003
+    quote: The risk of hepatotoxicity is increased with heavy alcohol consumption.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:occasional-regular-heavy:codeine
+  drug: codeine
+  rxcui: '2670'
+  factor_type: alcohol
+  factor_values:
+  - occasional
+  - regular
+  - heavy
+  effect: Profound sedation, respiratory depression, coma and death
+  mechanism: Additive CNS depression
+  severity: major
+  severity_basis: boxed warning
+  evidence:
+  - chunk_id: dailymed:010905f9-3bcb-4b50-9fe8-a3ad0010f14c:boxed_warning:001
+    quote: Concomitant use of opioids with benzodiazepines or other central nervous system (CNS) depressants,
+      including alcohol, may result in profound sedation, respiratory depression, coma, and death.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:occasional-regular-heavy:tramadol
+  drug: tramadol
+  rxcui: '10689'
+  factor_type: alcohol
+  factor_values:
+  - occasional
+  - regular
+  - heavy
+  effect: Profound sedation, respiratory depression, coma and death
+  mechanism: Additive CNS depression
+  severity: major
+  severity_basis: boxed warning
+  evidence:
+  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:boxed_warning:001
+    quote: Concomitant use of opioids with benzodiazepines or other central nervous system (CNS) depressants,
+      including alcohol, may result in profound sedation, respiratory depression, coma, and death.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:occasional-regular-heavy:amitriptyline
+  drug: amitriptyline
+  rxcui: '704'
+  factor_type: alcohol
+  factor_values:
+  - occasional
+  - regular
+  - heavy
+  effect: Enhanced response to alcohol
+  mechanism: Additive CNS depression
+  severity: minor
+  severity_basis: may enhance
+  evidence:
+  - chunk_id: dailymed:a219a68e-7ce5-4e9d-a0de-ec76960040f6:warnings:006
+    quote: Amitriptyline hydrochloride tablets may enhance the response to alcohol and the effects of
+      barbiturates and other CNS depressants.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:heavy:atorvastatin
+  drug: atorvastatin
+  rxcui: '83367'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Higher risk of liver injury
+  mechanism: Alcohol and statin hepatic effects
+  severity: moderate
+  severity_basis: increased risk
+  evidence:
+  - chunk_id: dailymed:a60cc18b-0631-4cf0-b021-9f52224ece65:warnings_and_precautions:005
+    quote: Patients who consume substantial quantities of alcohol and/or have a history of liver disease
+      may be at increased risk for hepatic injury
+  status: draft
+- rule_id: lifestyle_drug:alcohol:heavy:rosuvastatin
+  drug: rosuvastatin
+  rxcui: '301542'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Higher risk of liver injury
+  mechanism: Alcohol and statin hepatic effects
+  severity: moderate
+  severity_basis: increased risk
+  evidence:
+  - chunk_id: dailymed:325a5d0e-9a72-4015-9fcd-1655fb504cee:warnings_and_precautions:003
+    quote: Patients who consume substantial quantities of alcohol and/or have a history of liver disease
+      may be at increased risk for hepatic injury
+  status: draft
+- rule_id: lifestyle_drug:alcohol:heavy:simvastatin
+  drug: simvastatin
+  rxcui: '36567'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Higher risk of liver injury
+  mechanism: Alcohol and statin hepatic effects
+  severity: moderate
+  severity_basis: increased risk
+  evidence:
+  - chunk_id: dailymed:8f55d5de-5a4f-4a39-8c84-c53976dd6af9:warnings_and_precautions:005
+    quote: Patients who consume substantial quantities of alcohol and/or have a history of liver disease
+      may be at increased risk for hepatic injury.
+  status: draft
+- rule_id: lifestyle_drug:smoking:current:ibuprofen
+  drug: ibuprofen
+  rxcui: '5640'
+  factor_type: smoking
+  factor_values:
+  - current
+  effect: Higher risk of GI bleeding
+  mechanism: Smoking is a risk factor for NSAID GI bleeding
+  severity: moderate
+  severity_basis: increase the risk
+  evidence:
+  - chunk_id: dailymed:00872852-680a-41b3-901b-b991b12a176d:warnings:004
+    quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
+      concomitant use of oral corticosteroids or anticoagulants, longer duration of NSAID therapy, smoking,
+      use of alcohol, older age, and poor general health status.
+  status: draft
+- rule_id: lifestyle_drug:smoking:current:diclofenac
+  drug: diclofenac
+  rxcui: '3355'
+  factor_type: smoking
+  factor_values:
+  - current
+  effect: Higher risk of GI bleeding
+  mechanism: Smoking is a risk factor for NSAID GI bleeding
+  severity: moderate
+  severity_basis: increase the risk
+  evidence:
+  - chunk_id: dailymed:ed2a8868-78eb-47b8-8f46-0f70e2891e07:warnings_and_precautions:003
+    quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
+      longer duration of NSAID therapy; concomitant use of oral corticosteroids, aspirin, anticoagulants,
+      or selective serotonin reuptake inhibitors (SSRIs); smoking; use of alcohol; older age; and poor
+      general health status.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:regular-heavy:diclofenac
+  drug: diclofenac
+  rxcui: '3355'
+  factor_type: alcohol
+  factor_values:
+  - regular
+  - heavy
+  effect: Higher risk of GI bleeding
+  mechanism: Alcohol is a risk factor for NSAID GI bleeding
+  severity: moderate
+  severity_basis: increase the risk
+  evidence:
+  - chunk_id: dailymed:ed2a8868-78eb-47b8-8f46-0f70e2891e07:warnings_and_precautions:003
+    quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
+      longer duration of NSAID therapy; concomitant use of oral corticosteroids, aspirin, anticoagulants,
+      or selective serotonin reuptake inhibitors (SSRIs); smoking; use of alcohol; older age; and poor
+      general health status.
+  status: draft
+  review_flags:
+  - Label says 'use of alcohol'; limited to regular and heavy drinkers here. Confirm.
+- rule_id: lifestyle_drug:smoking:current:celecoxib
+  drug: celecoxib
+  rxcui: '140587'
+  factor_type: smoking
+  factor_values:
+  - current
+  effect: Higher risk of GI bleeding
+  mechanism: Smoking is a risk factor for NSAID GI bleeding
+  severity: moderate
+  severity_basis: increase the risk
+  evidence:
+  - chunk_id: dailymed:2d6675e4-5859-4be2-8037-a20ce9f707aa:warnings_and_precautions:005
+    quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
+      longer duration of NSAID therapy; concomitant use of oral corticosteroids, antiplatelet drugs (such
+      as aspirin), anticoagulants; or selective serotonin reuptake inhibitors (SSRIs); smoking; use of
+      alcohol; older age; and poor general health status.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:regular-heavy:celecoxib
+  drug: celecoxib
+  rxcui: '140587'
+  factor_type: alcohol
+  factor_values:
+  - regular
+  - heavy
+  effect: Higher risk of GI bleeding
+  mechanism: Alcohol is a risk factor for NSAID GI bleeding
+  severity: moderate
+  severity_basis: increase the risk
+  evidence:
+  - chunk_id: dailymed:2d6675e4-5859-4be2-8037-a20ce9f707aa:warnings_and_precautions:005
+    quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
+      longer duration of NSAID therapy; concomitant use of oral corticosteroids, antiplatelet drugs (such
+      as aspirin), anticoagulants; or selective serotonin reuptake inhibitors (SSRIs); smoking; use of
+      alcohol; older age; and poor general health status.
+  status: draft
+  review_flags:
+  - Label says 'use of alcohol'; limited to regular and heavy drinkers here. Confirm.
+- rule_id: lifestyle_drug:alcohol:heavy:phenytoin
+  drug: phenytoin
+  rxcui: '8183'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Lower phenytoin levels with chronic alcohol abuse
+  mechanism: Chronic alcohol use induces phenytoin metabolism
+  severity: moderate
+  severity_basis: may decrease phenytoin serum levels
+  evidence:
+  - chunk_id: dailymed:86dd27d1-9cee-48ae-b55d-e2d2f7dbc593:drug_interactions:003
+    quote: Drugs that may decrease phenytoin serum levels
+  - chunk_id: dailymed:86dd27d1-9cee-48ae-b55d-e2d2f7dbc593:drug_interactions:003
+    quote: Other | Chronic alcohol abuse, diazepam, diazoxide, folic acid, reserpine, rifampin, St.
+  status: draft
+  notes: The same table lists ACUTE alcohol intake under drugs that may INCREASE phenytoin levels; the
+    contract can't tell acute from chronic drinking, so that direction has no rule.
+- rule_id: lifestyle_drug:alcohol:regular-heavy:ibuprofen
+  drug: ibuprofen
+  rxcui: '5640'
+  factor_type: alcohol
+  factor_values:
+  - regular
+  - heavy
+  effect: Higher risk of GI bleeding
+  mechanism: Alcohol is a risk factor for NSAID GI bleeding
+  severity: moderate
+  severity_basis: increase the risk
+  evidence:
+  - chunk_id: dailymed:00872852-680a-41b3-901b-b991b12a176d:warnings:004
+    quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
+      concomitant use of oral corticosteroids or anticoagulants, longer duration of NSAID therapy, smoking,
+      use of alcohol, older age, and poor general health status.
+  status: draft
+  review_flags:
+  - Label says 'use of alcohol'; limited to regular and heavy drinkers here. Confirm.
+- rule_id: lifestyle_drug:alcohol:occasional-regular-heavy:allopurinol
+  drug: allopurinol
+  rxcui: '519'
+  factor_type: alcohol
+  factor_values:
+  - occasional
+  - regular
+  - heavy
+  effect: Additive CNS depressant effects
+  mechanism: Additive CNS depression
+  severity: minor
+  severity_basis: may be additive
+  evidence:
+  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:warnings_and_precautions:006
+    quote: Inform patients also that the central nervous system depressant effects of Allopurinol Tablets
+      may be additive to those of alcohol and other CNS depressants.
+  status: draft
+- rule_id: lifestyle_drug:alcohol:heavy:clozapine
+  drug: clozapine
+  rxcui: '2626'
+  factor_type: alcohol
+  factor_values:
+  - heavy
+  effect: Higher seizure risk
+  mechanism: Alcohol abuse lowers the seizure threshold
+  severity: minor
+  severity_basis: use caution
+  evidence:
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:boxed_warning:002
+    quote: Use caution when administering CLOZARIL to patients with a history of seizures or other predisposing
+      risk factors for seizure (CNS pathology, medications that lower the seizure threshold, alcohol abuse).
+  status: draft

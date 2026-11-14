@@ -1,0 +1,14 @@
+# Keep the build context small and free of data and secrets.
+.venv
+data
+.env
+**/__pycache__
+**/*.pyc
+.git
+.ruff_cache
+.pytest_cache
+notebooks
+tests
+curation
+warehouse_proposal
+docs

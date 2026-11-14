@@ -1,0 +1,52 @@
+# Drug classes that label text refers to ("Avoid NSAIDs", "other SSRIs").
+#
+# Which v1 drug belongs to which class is NOT written here: it comes from NLM RxClass
+# (FDA Established Pharmacologic Class and MED-RT mechanism), fetched by
+# `make fetch-classes`. This file only says:
+#   - which RxClass classes make up each class (epc / moa), and
+#   - which words in a text mean that class (text). Whole-word, case-insensitive.
+# manual_members is only for drugs RxClass doesn't cover; each needs a reason.
+classes:
+  nsaid:
+    name: NSAIDs
+    epc: [Nonsteroidal Anti-inflammatory Drug]
+    text: [NSAID, NSAIDs, nonsteroidal anti-inflammatory, non-steroidal anti-inflammatory]
+  ppi:
+    name: Proton pump inhibitors
+    epc: [Proton Pump Inhibitor]
+    text: [proton pump inhibitor, proton pump inhibitors, PPI, PPIs]
+  statin:
+    name: Statins
+    epc: [HMG-CoA Reductase Inhibitor]
+    text: [statin, statins, HMG-CoA reductase inhibitor, HMG-CoA reductase inhibitors]
+  ssri:
+    name: SSRIs
+    epc: [Serotonin Reuptake Inhibitor]
+    text: [SSRI, SSRIs, selective serotonin reuptake inhibitor, selective serotonin reuptake inhibitors]
+  tca:
+    name: Tricyclic antidepressants
+    epc: [Tricyclic Antidepressant]
+    text: [tricyclic antidepressant, tricyclic antidepressants, TCA, TCAs]
+  opioid:
+    name: Opioids
+    epc: [Opioid Agonist]
+    moa: [Full Opioid Agonists]
+    text: [opioid, opioids, opioid agonist, opioid agonists, opioid analgesic, opioid analgesics]
+  vka:
+    name: Vitamin K antagonists
+    epc: [Vitamin K Antagonist]
+    text: [vitamin K antagonist, vitamin K antagonists, coumarin, coumarins, coumarin anticoagulant, coumarin anticoagulants]
+  antiplatelet:
+    name: Antiplatelet agents
+    epc: [Platelet Aggregation Inhibitor, P2Y12 Platelet Inhibitor]
+    # Not the bare word "antiplatelet": labels use it for an effect ("antiplatelet activity").
+    text: [antiplatelet agent, antiplatelet agents, antiplatelet drug, antiplatelet drugs, antiplatelet therapy, antiplatelet medication, antiplatelet medications, platelet inhibitor, platelet inhibitors]
+  ccb:
+    name: Calcium channel blockers
+    epc: [Calcium Channel Blocker]
+    text: [calcium channel blocker, calcium channel blockers]
+
+manual_members:
+  acenocoumarol:
+    classes: [vka]
+    reason: Not a US drug, so not in RxClass. Acenocoumarol is a coumarin vitamin K antagonist (WHO ATC B01AA07, "Vitamin K antagonists").

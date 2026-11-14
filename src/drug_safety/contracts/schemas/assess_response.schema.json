@@ -1,0 +1,493 @@
+{
+  "$defs": {
+    "DataGap": {
+      "additionalProperties": false,
+      "description": "A missing input that made the engine skip rules (spec: never a flag, always reported).",
+      "properties": {
+        "kind": {
+          "enum": [
+            "lab",
+            "genotype",
+            "lifestyle",
+            "drug"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "message": {
+          "description": "e.g. 'No creatinine value, renal rules skipped'",
+          "title": "Message",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "message"
+      ],
+      "title": "DataGap",
+      "type": "object"
+    },
+    "EvidenceChunk": {
+      "additionalProperties": false,
+      "description": "One retrieved passage, as shown to Qwen and in the interface.",
+      "properties": {
+        "chunk_id": {
+          "title": "Chunk Id",
+          "type": "string"
+        },
+        "doc_id": {
+          "title": "Doc Id",
+          "type": "string"
+        },
+        "heading": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Heading"
+        },
+        "license": {
+          "title": "License",
+          "type": "string"
+        },
+        "source": {
+          "title": "Source",
+          "type": "string"
+        },
+        "text": {
+          "title": "Text",
+          "type": "string"
+        },
+        "tier": {
+          "maximum": 4,
+          "minimum": 1,
+          "title": "Tier",
+          "type": "integer"
+        },
+        "title": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Title"
+        }
+      },
+      "required": [
+        "chunk_id",
+        "doc_id",
+        "source",
+        "tier",
+        "text",
+        "license"
+      ],
+      "title": "EvidenceChunk",
+      "type": "object"
+    },
+    "Flag": {
+      "additionalProperties": false,
+      "description": "One unsafe finding. The seven spec fields (p14) come first; the rest identify what\ntriggered the flag, which the retriever needs to build its query and drug filter.",
+      "properties": {
+        "drug": {
+          "description": "Ingredient name of the flagged drug",
+          "title": "Drug",
+          "type": "string"
+        },
+        "flag_id": {
+          "description": "e.g. 'gene-001'; unique within one assessment",
+          "title": "Flag Id",
+          "type": "string"
+        },
+        "flag_type": {
+          "$ref": "#/$defs/FlagType"
+        },
+        "gene": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "gene_drug: gene symbol",
+          "title": "Gene"
+        },
+        "interacting_drug": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "drug_drug: the other drug",
+          "title": "Interacting Drug"
+        },
+        "lab": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LabFinding"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "lab_drug: the value that crossed the rule"
+        },
+        "lifestyle": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LifestyleFactor"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "lifestyle_drug: the factor"
+        },
+        "phenotype": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "gene_drug: e.g. 'poor metabolizer'",
+          "title": "Phenotype"
+        },
+        "reason": {
+          "title": "Reason",
+          "type": "string"
+        },
+        "rule_id": {
+          "description": "'<flag_type>:...', e.g. 'gene_drug:CYP2C19:poor_metabolizer:clopidogrel'",
+          "title": "Rule Id",
+          "type": "string"
+        },
+        "rxcui": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Optional ingredient RxCUI of `drug`",
+          "title": "Rxcui"
+        },
+        "severity": {
+          "$ref": "#/$defs/Severity"
+        },
+        "source": {
+          "description": "Where the rule came from, e.g. 'CPIC', 'DDInter', 'label'",
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "flag_id",
+        "flag_type",
+        "drug",
+        "severity",
+        "rule_id",
+        "reason",
+        "source"
+      ],
+      "title": "Flag",
+      "type": "object"
+    },
+    "FlagExplanation": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ids": {
+          "description": "Chunk IDs. May be empty only if the flag had no evidence; that must then be stated under `uncertainties` (spec prompt rules)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "flag_id": {
+          "title": "Flag Id",
+          "type": "string"
+        },
+        "plain_explanation": {
+          "minLength": 1,
+          "title": "Plain Explanation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "flag_id",
+        "plain_explanation",
+        "evidence_ids"
+      ],
+      "title": "FlagExplanation",
+      "type": "object"
+    },
+    "FlagType": {
+      "enum": [
+        "drug_drug",
+        "gene_drug",
+        "lab_drug",
+        "lifestyle_drug"
+      ],
+      "title": "FlagType",
+      "type": "string"
+    },
+    "LabFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "measure": {
+          "description": "LOINC code or derived measure, e.g. 'egfr'",
+          "title": "Measure",
+          "type": "string"
+        },
+        "operator": {
+          "enum": [
+            "<",
+            "<=",
+            ">",
+            ">="
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "threshold": {
+          "title": "Threshold",
+          "type": "number"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "measure",
+        "value",
+        "unit",
+        "operator",
+        "threshold"
+      ],
+      "title": "LabFinding",
+      "type": "object"
+    },
+    "LifestyleFactor": {
+      "additionalProperties": false,
+      "properties": {
+        "factor_type": {
+          "enum": [
+            "smoking",
+            "alcohol",
+            "diet_tag"
+          ],
+          "title": "Factor Type",
+          "type": "string"
+        },
+        "factor_value": {
+          "description": "e.g. 'current', 'heavy', 'grapefruit'",
+          "title": "Factor Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "factor_type",
+        "factor_value"
+      ],
+      "title": "LifestyleFactor",
+      "type": "object"
+    },
+    "Report": {
+      "additionalProperties": false,
+      "description": "Exactly the JSON Qwen must return (spec p16). Extra fields are rejected.",
+      "properties": {
+        "flags_explained": {
+          "items": {
+            "$ref": "#/$defs/FlagExplanation"
+          },
+          "title": "Flags Explained",
+          "type": "array"
+        },
+        "suggestions_for_clinician_review": {
+          "items": {
+            "$ref": "#/$defs/Suggestion"
+          },
+          "title": "Suggestions For Clinician Review",
+          "type": "array"
+        },
+        "summary": {
+          "minLength": 1,
+          "title": "Summary",
+          "type": "string"
+        },
+        "uncertainties": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncertainties",
+          "type": "array"
+        }
+      },
+      "required": [
+        "summary",
+        "flags_explained",
+        "suggestions_for_clinician_review",
+        "uncertainties"
+      ],
+      "title": "Report",
+      "type": "object"
+    },
+    "Severity": {
+      "description": "Spec scale, highest first. Use `Severity.rank` to sort.",
+      "enum": [
+        "contraindicated",
+        "major",
+        "moderate",
+        "minor"
+      ],
+      "title": "Severity",
+      "type": "string"
+    },
+    "Suggestion": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ids": {
+          "description": "Spec validator rule 5: every suggestion cites evidence",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "flag_id": {
+          "title": "Flag Id",
+          "type": "string"
+        },
+        "text": {
+          "description": "Worded as 'Consider reviewing ...'",
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "flag_id",
+        "evidence_ids"
+      ],
+      "title": "Suggestion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "contracts_version": {
+      "default": "0.1.0",
+      "title": "Contracts Version",
+      "type": "string"
+    },
+    "data_gaps": {
+      "items": {
+        "$ref": "#/$defs/DataGap"
+      },
+      "title": "Data Gaps",
+      "type": "array"
+    },
+    "disclaimer": {
+      "default": "Decision support for a pharmacist or clinician, not medical advice.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "evidence": {
+      "additionalProperties": {
+        "items": {
+          "$ref": "#/$defs/EvidenceChunk"
+        },
+        "type": "array"
+      },
+      "description": "flag_id -> its chunks",
+      "title": "Evidence",
+      "type": "object"
+    },
+    "flags": {
+      "description": "Sorted by severity, most severe first",
+      "items": {
+        "$ref": "#/$defs/Flag"
+      },
+      "title": "Flags",
+      "type": "array"
+    },
+    "notice": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "e.g. 'AI summary unavailable'",
+      "title": "Notice"
+    },
+    "patient_id": {
+      "title": "Patient Id",
+      "type": "string"
+    },
+    "report": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Report"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "report_source": {
+      "description": "'template' when the LLM output failed validation twice (spec fallback); 'none' when use_llm was false",
+      "enum": [
+        "llm",
+        "template",
+        "none"
+      ],
+      "title": "Report Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "patient_id",
+    "flags",
+    "evidence",
+    "data_gaps",
+    "report",
+    "report_source"
+  ],
+  "title": "AssessResponse",
+  "type": "object"
+}

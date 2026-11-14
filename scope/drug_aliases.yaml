@@ -1,0 +1,43 @@
+# TEMPORARY tagging dictionary: which words in a text mean which v1 drug.
+# Used to fill evidence_chunks.drugs[] until Person A's drug_alias table exists; then replace it.
+#
+# Rules for adding names:
+#   - Whole-word, case-insensitive match. "omeprazole" does NOT match "esomeprazole".
+#   - Only unambiguous names. No abbreviations that mean other things (e.g. "ASA", "MTX" left out).
+#   - Ingredient synonyms and brand names (US, plus EU/India where relevant).
+aliases:
+  clopidogrel: [clopidogrel, Plavix]
+  omeprazole: [omeprazole, Prilosec]
+  pantoprazole: [pantoprazole, Protonix]
+  warfarin: [warfarin, Coumadin, Jantoven]
+  acenocoumarol: [acenocoumarol, Sintrom, Sinthrome, Acitrom]
+  aspirin: [aspirin, acetylsalicylic acid]
+  ibuprofen: [ibuprofen, Advil, Motrin]
+  diclofenac: [diclofenac, Voltaren, Zipsor, Cambia, Zorvolex]
+  celecoxib: [celecoxib, Celebrex]
+  simvastatin: [simvastatin, Zocor]
+  atorvastatin: [atorvastatin, Lipitor]
+  rosuvastatin: [rosuvastatin, Crestor]
+  metformin: [metformin, Glucophage, Glumetza, Fortamet, Riomet]
+  phenytoin: [phenytoin, Dilantin, Phenytek]
+  amlodipine: [amlodipine, Norvasc]
+  codeine: [codeine]
+  tramadol: [tramadol, Ultram, ConZip]
+  amitriptyline: [amitriptyline, Elavil]
+  sertraline: [sertraline, Zoloft]
+  citalopram: [citalopram, Celexa]
+  clozapine: [clozapine, Clozaril, Versacloz, FazaClo]
+  theophylline: [theophylline, Theo-24, Elixophyllin]
+  paracetamol: [paracetamol, acetaminophen, APAP, Tylenol]
+  methotrexate: [methotrexate, Trexall, Xatmep, Otrexup, Rasuvo, Jylamvo]
+  allopurinol: [allopurinol, Zyloprim]
+
+# Gene symbols, older spellings used in labels ("cytochrome P450 2D6"), and protein names
+# (OATP1B1 is the SLCO1B1 transporter).
+genes:
+  CYP2C19: [CYP2C19, CYP 2C19, CYP450 2C19, P450 2C19, P-450 2C19, P450 isoenzyme 2C19, P450 isozyme 2C19]
+  CYP2D6: [CYP2D6, CYP 2D6, CYP450 2D6, P450 2D6, P-450 2D6, P450 isoenzyme 2D6, P450 isozyme 2D6]
+  CYP2C9: [CYP2C9, CYP 2C9, CYP450 2C9, P450 2C9, P-450 2C9, P450 isoenzyme 2C9, P450 isozyme 2C9]
+  SLCO1B1: [SLCO1B1, OATP1B1]
+  VKORC1: [VKORC1]
+  HLA-B: [HLA-B, HLA B]  # labels write HLA-B*1502, HLA-B*58:01, HLA-B*5801, "HLA B gene"

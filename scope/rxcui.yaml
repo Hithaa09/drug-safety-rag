@@ -1,0 +1,30 @@
+# Ingredient-level RxCUI per v1 drug. TEMPORARY until Person A's drug_dim exists.
+# Verified 2026-11-11: RxNav /rxcui.json (exactly one result per drug, term type IN = ingredient),
+# and cross-checked with the CPIC drug list (all 22 drugs CPIC lists agree; amlodipine,
+# theophylline and acetaminophen aren't in CPIC). Source: NLM RxNorm.
+rxcui:
+  clopidogrel: "32968"
+  omeprazole: "7646"
+  pantoprazole: "40790"
+  warfarin: "11289"
+  acenocoumarol: "154"
+  aspirin: "1191"
+  ibuprofen: "5640"
+  diclofenac: "3355"
+  celecoxib: "140587"
+  simvastatin: "36567"
+  atorvastatin: "83367"
+  rosuvastatin: "301542"
+  metformin: "6809"
+  phenytoin: "8183"
+  amlodipine: "17767"
+  codeine: "2670"
+  tramadol: "10689"
+  amitriptyline: "704"
+  sertraline: "36437"
+  citalopram: "2556"
+  clozapine: "2626"
+  theophylline: "10438"
+  paracetamol: "161"      # RxNorm name: acetaminophen
+  methotrexate: "6851"
+  allopurinol: "519"

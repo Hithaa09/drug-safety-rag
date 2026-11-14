@@ -1,0 +1,18 @@
+# Lab measures the v1 rules may use: the three spec panels (LFT, CBC, RFT).
+# Each LOINC code verified 2026-11-11 against NLM Clinical Tables (loinc_items search);
+# `name` is LOINC's long common name. `unit` is the canonical unit rules use (spec: one unit per test).
+# `derived` measures are calculated, not measured (spec lab_drug_rules.derived_measure).
+measures:
+  creatinine: {panel: RFT, loinc: 2160-0, unit: mg/dL, name: "Creatinine [Mass/volume] in Serum or Plasma"}
+  bun:        {panel: RFT, loinc: 3094-0, unit: mg/dL, name: "Urea nitrogen [Mass/volume] in Serum or Plasma"}
+  egfr:       {panel: RFT, loinc: 98979-8, unit: mL/min/1.73m2, derived: true, formula: CKD-EPI 2021 creatinine,
+               name: "Glomerular filtration rate [Volume Rate/Area] in Serum, Plasma or Blood by Creatinine-based formula (CKD-EPI 2021)/1.73 sq M"}
+  alt:        {panel: LFT, loinc: 1742-6, unit: U/L, name: "Alanine aminotransferase [Enzymatic activity/volume] in Serum or Plasma"}
+  ast:        {panel: LFT, loinc: 1920-8, unit: U/L, name: "Aspartate aminotransferase [Enzymatic activity/volume] in Serum or Plasma"}
+  bilirubin:  {panel: LFT, loinc: 1975-2, unit: mg/dL, name: "Bilirubin.total [Mass/volume] in Serum or Plasma"}
+  alp:        {panel: LFT, loinc: 6768-6, unit: U/L, name: "Alkaline phosphatase [Enzymatic activity/volume] in Serum or Plasma"}
+  albumin:    {panel: LFT, loinc: 1751-7, unit: g/dL, name: "Albumin [Mass/volume] in Serum or Plasma"}
+  platelets:  {panel: CBC, loinc: 777-3, unit: 10^3/uL, name: "Platelets [#/volume] in Blood by Automated count"}
+  wbc:        {panel: CBC, loinc: 6690-2, unit: 10^3/uL, name: "Leukocytes [#/volume] in Blood by Automated count"}
+  anc:        {panel: CBC, loinc: 751-8, unit: 10^3/uL, name: "Neutrophils [#/volume] in Blood by Automated count"}
+  hemoglobin: {panel: CBC, loinc: 718-7, unit: g/dL, name: "Hemoglobin [Mass/volume] in Blood"}

@@ -1,0 +1,212 @@
+{
+  "$defs": {
+    "FlagType": {
+      "enum": [
+        "drug_drug",
+        "gene_drug",
+        "lab_drug",
+        "lifestyle_drug"
+      ],
+      "title": "FlagType",
+      "type": "string"
+    },
+    "LabFinding": {
+      "additionalProperties": false,
+      "properties": {
+        "measure": {
+          "description": "LOINC code or derived measure, e.g. 'egfr'",
+          "title": "Measure",
+          "type": "string"
+        },
+        "operator": {
+          "enum": [
+            "<",
+            "<=",
+            ">",
+            ">="
+          ],
+          "title": "Operator",
+          "type": "string"
+        },
+        "threshold": {
+          "title": "Threshold",
+          "type": "number"
+        },
+        "unit": {
+          "title": "Unit",
+          "type": "string"
+        },
+        "value": {
+          "title": "Value",
+          "type": "number"
+        }
+      },
+      "required": [
+        "measure",
+        "value",
+        "unit",
+        "operator",
+        "threshold"
+      ],
+      "title": "LabFinding",
+      "type": "object"
+    },
+    "LifestyleFactor": {
+      "additionalProperties": false,
+      "properties": {
+        "factor_type": {
+          "enum": [
+            "smoking",
+            "alcohol",
+            "diet_tag"
+          ],
+          "title": "Factor Type",
+          "type": "string"
+        },
+        "factor_value": {
+          "description": "e.g. 'current', 'heavy', 'grapefruit'",
+          "title": "Factor Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "factor_type",
+        "factor_value"
+      ],
+      "title": "LifestyleFactor",
+      "type": "object"
+    },
+    "Severity": {
+      "description": "Spec scale, highest first. Use `Severity.rank` to sort.",
+      "enum": [
+        "contraindicated",
+        "major",
+        "moderate",
+        "minor"
+      ],
+      "title": "Severity",
+      "type": "string"
+    }
+  },
+  "additionalProperties": false,
+  "description": "One unsafe finding. The seven spec fields (p14) come first; the rest identify what\ntriggered the flag, which the retriever needs to build its query and drug filter.",
+  "properties": {
+    "drug": {
+      "description": "Ingredient name of the flagged drug",
+      "title": "Drug",
+      "type": "string"
+    },
+    "flag_id": {
+      "description": "e.g. 'gene-001'; unique within one assessment",
+      "title": "Flag Id",
+      "type": "string"
+    },
+    "flag_type": {
+      "$ref": "#/$defs/FlagType"
+    },
+    "gene": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "gene_drug: gene symbol",
+      "title": "Gene"
+    },
+    "interacting_drug": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "drug_drug: the other drug",
+      "title": "Interacting Drug"
+    },
+    "lab": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LabFinding"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "lab_drug: the value that crossed the rule"
+    },
+    "lifestyle": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/LifestyleFactor"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "lifestyle_drug: the factor"
+    },
+    "phenotype": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "gene_drug: e.g. 'poor metabolizer'",
+      "title": "Phenotype"
+    },
+    "reason": {
+      "title": "Reason",
+      "type": "string"
+    },
+    "rule_id": {
+      "description": "'<flag_type>:...', e.g. 'gene_drug:CYP2C19:poor_metabolizer:clopidogrel'",
+      "title": "Rule Id",
+      "type": "string"
+    },
+    "rxcui": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "Optional ingredient RxCUI of `drug`",
+      "title": "Rxcui"
+    },
+    "severity": {
+      "$ref": "#/$defs/Severity"
+    },
+    "source": {
+      "description": "Where the rule came from, e.g. 'CPIC', 'DDInter', 'label'",
+      "title": "Source",
+      "type": "string"
+    }
+  },
+  "required": [
+    "flag_id",
+    "flag_type",
+    "drug",
+    "severity",
+    "rule_id",
+    "reason",
+    "source"
+  ],
+  "title": "Flag",
+  "type": "object"
+}

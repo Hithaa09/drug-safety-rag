@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<document xmlns="urn:hl7-org:v3">
+  <code code="34391-3" displayName="HUMAN PRESCRIPTION DRUG LABEL"/>
+  <title>TESTDRUG tablets</title>
+  <effectiveTime value="20250530"/>
+  <setId root="11111111-2222-3333-4444-555555555555"/>
+  <versionNumber value="7"/>
+  <author><assignedEntity><representedOrganization><name>Test Pharma  Inc.</name></representedOrganization></assignedEntity></author>
+  <component><structuredBody>
+    <component><section>
+      <code code="48780-1" displayName="SPL PRODUCT DATA ELEMENTS SECTION"/>
+      <text><paragraph>PRODUCT TABLE SHOULD BE SKIPPED</paragraph></text>
+    </section></component>
+    <component><section>
+      <code code="34070-3" displayName="CONTRAINDICATIONS SECTION"/>
+      <title>4 CONTRAINDICATIONS</title>
+      <text><paragraph>Active bleeding.</paragraph></text>
+    </section></component>
+    <component><section>
+      <code code="34073-7" displayName="DRUG INTERACTIONS SECTION"/>
+      <title>7 DRUG INTERACTIONS</title>
+      <excerpt><highlight><text><paragraph>HIGHLIGHT SHOULD BE SKIPPED</paragraph></text></highlight></excerpt>
+      <text><paragraph>Intro to   interactions.</paragraph></text>
+      <component><section>
+        <code code="42229-5" displayName="SPL UNCLASSIFIED SECTION"/>
+        <title>7.2 CYP2C19 Inhibitors</title>
+        <text>
+          <paragraph>Avoid <content styleCode="bold">omeprazole</content> or esomeprazole.<br/>Second line.</paragraph>
+          <list><item>First item</item><item>Second item</item></list>
+          <table><caption>Table 1: Examples</caption>
+            <thead><tr><th>Drug</th><th>Effect<footnote>Measured at steady state</footnote></th></tr></thead>
+            <tbody><tr><td>omeprazole</td><td>reduces active metabolite</td></tr></tbody>
+          </table>
+          <renderMultiMedia referencedObject="img1"/>
+        </text>
+      </section></component>
+    </section></component>
+    <component><section>
+      <code code="34090-1" displayName="CLINICAL PHARMACOLOGY SECTION"/>
+      <title>12 CLINICAL PHARMACOLOGY</title>
+      <component><section>
+        <code code="42229-5" displayName="SPL UNCLASSIFIED SECTION"/>
+        <title>12.5 Pharmacogenomics</title>
+        <text><paragraph>CYP2C19 poor metabolizers form less active metabolite.</paragraph></text>
+      </section></component>
+    </section></component>
+    <component><section>
+      <code code="42229-5" displayName="SPL UNCLASSIFIED SECTION"/>
+      <text><paragraph>Distributed by Test Pharma.</paragraph></text>
+    </section></component>
+    <component><section>
+      <code code="51945-4" displayName="PACKAGE LABEL.PRINCIPAL DISPLAY PANEL"/>
+      <title>PRINCIPAL DISPLAY PANEL</title>
+      <text><paragraph>PACKAGE LABEL SHOULD BE SKIPPED</paragraph></text>
+    </section></component>
+  </structuredBody></component>
+</document>

@@ -1,0 +1,152 @@
+# One DailyMed label (set ID) per v1 drug. The DailyMed loader fetches exactly these.
+#
+# Chosen 2026-11-11 with `python -m drug_safety.ingest.dailymed suggest` plus manual checks:
+#   prefer the brand (NDA) prescription label, oral tablet or capsule, single ingredient,
+#   updated in the last 3 years; else the newest generic (ANDA); else the OTC label.
+#
+# kind:   brand | generic | otc | none
+# review: ok      = reference brand, or the application holder's own label
+#         check   = usable, but a better label may exist (repackager copy, unusual formulation)
+#         missing = no US label; needs another source (decide with Person A)
+# query:  name used to search DailyMed when it differs from the scope name
+labels:
+  clopidogrel:
+    setid: de8b0b67-eb25-4684-83b5-7ad785314227
+    title: PLAVIX (CLOPIDOGREL) TABLET, FILM COATED [SANOFI-AVENTIS U.S. LLC]
+    kind: brand
+    review: ok
+  omeprazole:
+    setid: c6c22be1-659d-4e71-b292-701e27da201b
+    title: OMEPRAZOLE CAPSULE, DELAYED RELEASE [GLENMARK PHARMACEUTICALS INC., USA]
+    kind: generic
+    review: ok
+    note: Generic from the application holder (Glenmark, ANDA091672); replaced a repackager copy (Advanced Rx) on 2026-11-11. Prilosec Rx is now granules only.
+  pantoprazole:
+    setid: 08098cb2-c048-4640-f387-6beec4a38936
+    title: PROTONIX DELAYED-RELEASE (PANTOPRAZOLE SODIUM) TABLET, DELAYED RELEASE
+    kind: brand
+    review: ok
+  warfarin:
+    setid: 19a69a72-ac5d-45d5-a94d-a5aaecbe4730
+    title: JANTOVEN (WARFARIN SODIUM) TABLET [UPSHER-SMITH LABORATORIES, LLC]
+    kind: brand
+    review: ok
+    note: Coumadin is discontinued; Jantoven is a current manufacturer label.
+  acenocoumarol:
+    setid: null
+    kind: none
+    review: missing
+    note: >-
+      Approved outside the US (India: Acitrom; Europe: Sintrom), so not on DailyMed. Kept in v1.
+      Label source (agreed with Person A 2026-11-14, E2): French BDPM, Sintrom 4 mg (CIS 61510352),
+      Licence Ouverte 2.0 (corrected from 1.0), ANSM update 20/06/2025 (corrected from June 2018),
+      with a reviewed English translation: ingest/bdpm.py, curation/translations/.
+  aspirin:
+    setid: 39e142a7-8590-4e1e-8319-6904fb57cc8a
+    title: ASPIRIN LOW DOSE (ASPIRIN) TABLET, CHEWABLE [L.N.K. INTERNATIONAL, INC.]
+    kind: otc
+    review: check
+    note: OTC Drug Facts label; short warnings only, no full prescribing sections.
+  ibuprofen:
+    setid: 00872852-680a-41b3-901b-b991b12a176d
+    title: IBUPROFEN TABLET [AUROBINDO PHARMA LIMITED]
+    kind: generic
+    review: ok
+    note: Prescription-strength generic from the application holder (Aurobindo, ANDA213794); replaced a repackager copy (Proficient Rx) on 2026-11-11.
+  diclofenac:
+    setid: ed2a8868-78eb-47b8-8f46-0f70e2891e07
+    title: ZIPSOR (DICLOFENAC POTASSIUM) CAPSULE, LIQUID FILLED [ASSERTIO]
+    kind: brand
+    review: check
+    note: Diclofenac sodium delayed-release tablets are more common; NSAID class text is the same.
+  celecoxib:
+    setid: 2d6675e4-5859-4be2-8037-a20ce9f707aa
+    title: CELEBREX (CELECOXIB) CAPSULE [VIATRIS SPECIALTY LLC]
+    kind: brand
+    review: ok
+  simvastatin:
+    setid: 8f55d5de-5a4f-4a39-8c84-c53976dd6af9
+    title: ZOCOR (SIMVASTATIN) TABLET, FILM COATED [ORGANON LLC]
+    kind: brand
+    review: ok
+  atorvastatin:
+    setid: a60cc18b-0631-4cf0-b021-9f52224ece65
+    title: LIPITOR (ATORVASTATIN CALCIUM) TABLET, FILM COATED [VIATRIS SPECIALTY LLC]
+    kind: brand
+    review: ok
+  rosuvastatin:
+    setid: 325a5d0e-9a72-4015-9fcd-1655fb504cee
+    title: CRESTOR (ROSUVASTATIN) TABLET, FILM COATED [ASTRAZENECA PHARMACEUTICALS LP]
+    kind: brand
+    review: ok
+  metformin:
+    setid: fb832474-88d9-4e29-95cd-fbc446944cc4
+    title: GLUMETZA (METFORMIN HYDROCHLORIDE) TABLET, EXTENDED RELEASE [SANTARUS]
+    kind: brand
+    review: check
+    note: Extended-release brand (Glucophage is no longer listed); renal (eGFR) text matches IR metformin.
+  phenytoin:
+    setid: 86dd27d1-9cee-48ae-b55d-e2d2f7dbc593
+    title: DILANTIN (EXTENDED PHENYTOIN SODIUM) CAPSULE, EXTENDED RELEASE [VIATRIS SPECIALTY LLC]
+    kind: brand
+    review: ok
+  amlodipine:
+    setid: 7367289c-b0b0-466a-83e2-558e2985c29f
+    title: NORVASC (AMLODIPINE BESYLATE) TABLET [VIATRIS SPECIALTY LLC]
+    kind: brand
+    review: ok
+  codeine:
+    setid: 010905f9-3bcb-4b50-9fe8-a3ad0010f14c
+    title: CODEINE SULFATE TABLET [HIKMA PHARMACEUTICALS USA INC.]
+    kind: brand
+    review: ok
+  tramadol:
+    setid: a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f
+    title: CONZIP (TRAMADOL HYDROCHLORIDE) CAPSULE, EXTENDED RELEASE [VERTICAL PHARMACEUTICALS]
+    kind: brand
+    review: check
+    note: Extended-release; an immediate-release tramadol label may suit better.
+  amitriptyline:
+    setid: a219a68e-7ce5-4e9d-a0de-ec76960040f6
+    title: AMITRIPTYLINE HYDROCHLORIDE TABLET [RISING PHARMA HOLDINGS, INC.]
+    kind: generic
+    review: ok
+    note: No brand label (Elavil discontinued). Generic from the application holder (Rising, ANDA217411); replaced a repackager copy (RemedyRepack) on 2026-11-11.
+  sertraline:
+    setid: fda754f6-d0f3-4dce-a17a-927d64f912f7
+    title: ZOLOFT (SERTRALINE HYDROCHLORIDE) TABLET, FILM COATED
+    kind: brand
+    review: ok
+  citalopram:
+    setid: 4259d9b1-de34-43a4-85a8-41dd214e9177
+    title: CELEXA (CITALOPRAM) TABLET, FILM COATED [ALLERGAN, INC.]
+    kind: brand
+    review: ok
+  clozapine:
+    setid: 90876802-0e3a-44c9-9ff7-1754dfbe736a
+    title: CLOZARIL (CLOZAPINE) TABLET [HLS THERAPEUTICS (USA), INC.]
+    kind: brand
+    review: ok
+  theophylline:
+    setid: 882657ae-e15b-4c86-a571-b55460bd4726
+    title: THEOPHYLLINE ANHYDROUS TABLET, EXTENDED RELEASE
+    kind: generic
+    review: check
+    note: No current brand label found.
+  paracetamol:
+    query: acetaminophen
+    setid: 5ed756b6-dbab-e742-e063-6294a90a27f3
+    title: GOODMEDS ACETAMINOPHEN RAPID RELEASE CAPSULE
+    kind: otc
+    review: check
+    note: Listed as acetaminophen in the US; OTC Drug Facts label (includes the liver and alcohol warning).
+  methotrexate:
+    setid: e942f8db-510f-44d6-acb5-b822196f5e8c
+    title: TREXALL (METHOTREXATE) TABLET, FILM COATED [TEVA WOMEN'S HEALTH LLC]
+    kind: brand
+    review: ok
+  allopurinol:
+    setid: a80fe56f-8d03-423f-8e2a-7ec8c9e5045b
+    title: ALLOPURINOL TABLET [ACTAVIS PHARMA, INC.]
+    kind: brand
+    review: ok

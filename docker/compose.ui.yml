@@ -1,0 +1,17 @@
+# PROPOSAL for Person A's docker-compose.yml: the ui service (spec p20: "ui | Streamlit | api |
+# Talks only to the API"). Paste under `services:`. Assumes A's API service is named `api` and
+# listens on 8080 (the ui's API_URL default); change API_URL if not.
+services:
+  ui:
+    build:
+      context: .
+      dockerfile: docker/ui.Dockerfile
+    environment:
+      API_URL: http://api:8080
+      API_TIMEOUT_S: "420"
+    ports:
+      - "8501:8501"
+    depends_on:
+      api:
+        condition: service_healthy
+    restart: unless-stopped

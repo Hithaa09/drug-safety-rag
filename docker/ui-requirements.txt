@@ -1,0 +1,8 @@
+# The Streamlit screen's only dependencies, pinned to the versions its tests ran with
+# (make check, 2026-11-11). No database driver, model or RAG code: the screen talks only to the API.
+streamlit==1.67.0
+pandas==3.1.1
+pydantic==2.14.3
+pydantic-settings==2.16.2
+PyYAML==6.0.3
+httpx==0.28.1

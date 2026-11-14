@@ -1,0 +1,291 @@
+"""Accept or reject one LLM answer (spec p16 validator, rules 1-6, plus rule 7 below).
+
+    report, issues = validate(text, flags, evidence, patient_summary, finder)
+    if not issues: use report
+    else: retry once with [i.message for i in issues] appended (prompts.add_errors)
+
+The rules, as the spec states them:
+  1. It parses into the Report model.
+  2. Every flag_id exists in the flags passed in, and every flag has (exactly one) explanation.
+  3. Every evidence_id was among the chunks supplied for that flag. Explanations of a flag
+     that has evidence cite at least one; a flag with no evidence is named under
+     `uncertainties` (spec prompt rules).
+  4. No drug name appears that is missing from the patient's prescriptions and the flags.
+  5. Every suggestion cites at least one evidence ID.
+  6. No instruction to stop a drug or change a dose, anywhere: orders ("Stop X"), modal
+     instructions ("should be discontinued"), and a dose change stated as needed ("dose
+     adjustments are necessary", "consider reducing the dose"). Suggestions must start
+     "Consider reviewing" (or monitoring, checking, assessing, evaluating, discussing) and may
+     not suggest stopping, switching or changing a dose. Describing the evidence ("the label
+     recommends a lower starting dose", "may require a lower dose") is allowed.
+Added by Person B (not in the spec's list, in its prompt rules):
+  7. No number appears that is not in the flags, the evidence or the patient summary
+     ("never add a dose or number"). Recorded separately so its effect can be measured.
+
+Messages are written for Qwen to read in the retry, and for a person reading the eval output.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+
+from pydantic import BaseModel, ValidationError
+
+from drug_safety.contracts import EvidenceChunk, Flag, Report
+from drug_safety.llm.drug_names import DrugNameFinder
+
+
+class Issue(BaseModel):
+    rule: int
+    where: str
+    message: str
+
+
+# ---------------------------------------------------------------- rule 1: parse
+
+
+_FENCE = re.compile(r"^```(?:json)?\s*(.*?)\s*```$", re.S)
+
+
+def parse(text: str) -> tuple[dict | None, list[Issue]]:
+    body = text.strip()
+    if m := _FENCE.match(body):  # a markdown fence around valid JSON is tolerated
+        body = m.group(1)
+    try:
+        data = json.loads(body)
+    except json.JSONDecodeError as e:
+        return None, [Issue(rule=1, where="answer", message=f"not valid JSON ({e.msg}); "
+                            "return only the JSON object")]  # fmt: skip
+    if not isinstance(data, dict):
+        return None, [Issue(rule=1, where="answer", message="the answer must be one JSON object")]
+    return data, []
+
+
+def to_report(data: dict) -> tuple[Report | None, list[Issue]]:
+    issues = []
+    for i, s in enumerate(data.get("suggestions_for_clinician_review") or []):
+        if isinstance(s, dict) and not s.get("evidence_ids"):  # rule 5 before the schema
+            issues.append(Issue(rule=5, where=f"suggestion {i + 1}",
+                                message=f"suggestion {i + 1} cites no evidence ID; cite one, or "
+                                "move the point to uncertainties"))  # fmt: skip
+    if issues:
+        return None, issues
+    try:
+        return Report.model_validate(data), []
+    except ValidationError as e:
+        return None, [
+            Issue(rule=1, where=".".join(str(x) for x in err["loc"]) or "answer",
+                  message=f"schema: {'.'.join(str(x) for x in err['loc'])}: {err['msg']}")
+            for err in e.errors()
+        ]  # fmt: skip
+
+
+# ---------------------------------------------------------------- rule 6: instructions
+
+_STOP_BASE = r"stop|discontinue|cease|withhold|withdraw|switch|replace|substitute|swap|avoid|quit"
+_STOP_ANY = (
+    r"\b(?:stop(?:s|ped|ping)?|discontinu\w*|ceas(?:e|es|ed|ing)|withh(?:old|olds|eld|olding)|"
+    r"withdraw(?:s|n|ing)?|switch\w*|replac\w*|substitut\w*|swap\w*|avoid\w*|quit\w*|halt\w*)\b"
+)
+_DOSE_VERB = r"(?:increas|decreas|reduc|lower|rais|halv|doubl|adjust|titrat|chang|cut|modif|tap)\w*"
+_DOSE_NOUN = r"(?:dose|doses|dosage|dosing)"
+_MODAL = r"\b(?:should|must|needs? to|has to|have to|ought to|is advised to|are advised to)\s+"
+
+# Direct instructions, wherever they appear. Dose verbs at the start of a sentence count only
+# when the sentence is about a dose ("Lower kidney function ..." is not an order).
+_IMPERATIVE = re.compile(
+    rf"^(?:please\s+)?(?:{_STOP_BASE}|do not (?:take|use|give|prescribe|start)|"
+    r"don't (?:take|use|give)|never (?:take|use|give))\b",
+    re.I,
+)
+_IMPERATIVE_DOSE = re.compile(
+    r"^(?:please\s+)?(?:increase|decrease|reduce|lower|raise|halve|double|adjust|titrate|change|"
+    r"cut)\b",
+    re.I,
+)
+_MODAL_STOP = re.compile(rf"{_MODAL}(?:\w+\s+){{0,3}}?{_STOP_ANY}", re.I)
+_MODAL_NOT_TAKE = re.compile(
+    rf"{_MODAL}not\s+(?:be\s+)?(?:take|taken|use|used|give|given|prescribed|co-?administered)\b",
+    re.I,
+)
+_MODAL_DOSE = re.compile(rf"{_MODAL}(?:\w+\s+){{0,3}}?{_DOSE_VERB}", re.I)
+_DOSE_STEM = r"(?:adjust|reduc|chang|modif|lower|decreas|increas|titrat)\w*"
+_W = r"(?:[\w'*/]+,?\s+)"  # one word (and its space) inside a phrase
+# A dose change stated as needed, in any field (found in real Qwen answers, first Colab run).
+_DOSE_NEEDED = [
+    # "Dose adjustments are necessary"
+    re.compile(rf"\b{_DOSE_NOUN}\s+(?:adjustments?|reductions?|changes?|modifications?)\s+"
+               r"(?:is|are|will be|would be)\s+(?:necessary|required|needed|warranted|essential)\b",
+               re.I),
+    # "a need for dose adjustment"
+    re.compile(rf"\bneed\s+for\s+(?:a\s+)?{_DOSE_NOUN}\s+{_DOSE_STEM}", re.I),
+    # "requires careful monitoring and consideration of dose adjustments" (not after "may")
+    re.compile(rf"(?<!may )(?<!might )(?<!could )(?<!can )\b(?:requires?|requiring|"
+               rf"necessitat\w*|warrants?|warranting|calls? for)\s+{_W}{{0,5}}?{_DOSE_NOUN}\s+"
+               rf"{_DOSE_STEM}", re.I),
+    # "consideration of dose adjustments", "consider reducing the dosage"
+    re.compile(rf"\bconsider(?:ing|ation of)?\s+{_W}{{0,3}}?{_DOSE_NOUN}\s+{_DOSE_STEM}", re.I),
+    re.compile(rf"\bconsider(?:ing|ation of)?\s+{_W}{{0,2}}?{_DOSE_STEM}\s+{_W}{{0,2}}?"
+               rf"{_DOSE_NOUN}\b", re.I),
+]  # fmt: skip
+# "consider withholding, dose reducing, or discontinuing methotrexate"
+_CONSIDER_STOP = re.compile(rf"\bconsider(?:ing|ation of)?\s+{_W}{{0,3}}?{_STOP_ANY}", re.I)
+# In a suggestion, a dose change as the action: "adjusting the dosage", "reduce the dose".
+# ("Consider reviewing ... potential dosage adjustments" names what to review: allowed.)
+_DOSE_ACTION = re.compile(
+    r"\b(?:reduc|lower|decreas|increas|adjust|chang|modify|halv|doubl|titrat)ing\s+"
+    rf"{_W}{{0,3}}?{_DOSE_NOUN}\b|\b(?:reduce|lower|decrease|increase|adjust|change|modify|halve|"
+    rf"double|titrate)\s+(?:the|its|their|his|her)\s+{_W}{{0,2}}?{_DOSE_NOUN}\b",
+    re.I,
+)
+REVIEW_VERBS = ("reviewing", "monitoring", "checking", "assessing", "evaluating", "discussing")
+_SUGGESTION_START = re.compile(rf"\s*consider\s+(?:{'|'.join(REVIEW_VERBS)})\b", re.I)
+# Split at sentence ends, and at a colon only before a capital: "Note: Stop it." is two
+# sentences, but an engine reason like "poor metabolizer: lower dose requirement" is one.
+_SENTENCES = re.compile(r"(?<=[.!?;])\s+|(?<=:)\s+(?=[A-Z])|\n+")
+
+
+def instruction_problems(text: str, suggestion: bool) -> list[str]:
+    """Why this text reads as an instruction to stop a drug or change a dose (empty = fine)."""
+    out = []
+    if suggestion and not _SUGGESTION_START.match(text):
+        start = " ".join(text.split()[:3])
+        out.append(f'must start with "Consider reviewing" (or "Consider monitoring", "Consider '
+                   f'checking"), not "{start}"')  # fmt: skip
+    for s in (x.strip() for x in _SENTENCES.split(text)):
+        if not s:
+            continue
+        about_dose = re.search(rf"\b{_DOSE_NOUN}\b", s, re.I)
+        needed = next((m for p in _DOSE_NEEDED if (m := p.search(s))), None)
+        if _IMPERATIVE.match(s) or (_IMPERATIVE_DOSE.match(s) and about_dose):
+            out.append(f'gives an order ("{s[:80]}")')
+        elif _MODAL_STOP.search(s) or _MODAL_NOT_TAKE.search(s):
+            out.append(f'says a drug should be stopped or avoided ("{s[:80]}")')
+        elif _MODAL_DOSE.search(s) and about_dose:
+            out.append(f'says a dose should change ("{s[:80]}")')
+        elif needed:
+            out.append(f'says a dose change is needed ("{needed.group()}")')
+        elif m := _CONSIDER_STOP.search(s):
+            out.append(f'suggests stopping or switching ("{m.group()}")')
+        elif suggestion and (m := re.search(_STOP_ANY, s, re.I)):
+            out.append(f'suggests stopping or switching ("{m.group()}")')
+        elif suggestion and (m := _DOSE_ACTION.search(s)):
+            out.append(f'suggests a dose change ("{m.group()}")')
+    return out
+
+
+# ---------------------------------------------------------------- rule 7: numbers
+
+_NUMBER = re.compile(r"(?<![A-Za-z\d.])\d+(?:\.\d+)?(?!\d)")
+
+
+def numbers(text: str) -> set[float]:
+    text = re.sub(r"(?<=\d),(?=\d{3}\b)", "", text)  # 1,000 -> 1000
+    return {float(n) for n in _NUMBER.findall(text)}
+
+
+# ---------------------------------------------------------------- all rules
+
+
+def texts(report: Report) -> list[tuple[str, str, bool]]:
+    """(where, text, is_suggestion) for every free-text field."""
+    out = [("summary", report.summary, False)]
+    out += [(f"explanation of {e.flag_id}", e.plain_explanation, False)
+            for e in report.flags_explained]  # fmt: skip
+    out += [(f"suggestion {i + 1}", s.text, True)
+            for i, s in enumerate(report.suggestions_for_clinician_review)]  # fmt: skip
+    out += [(f"uncertainty {i + 1}", u, False) for i, u in enumerate(report.uncertainties)]
+    return out
+
+
+def allowed_drugs(flags: list[Flag], patient_summary: str, finder: DrugNameFinder) -> set[str]:
+    """Flag drugs plus every drug named in the patient summary (its prescription list)."""
+    out = finder.find(patient_summary)
+    for f in flags:
+        out |= {f.drug, *([f.interacting_drug] if f.interacting_drug else [])}
+        out |= finder.find(f.reason)
+    return out
+
+
+def source_numbers(
+    flags: list[Flag], evidence: dict[str, list[EvidenceChunk]], patient_summary: str
+) -> set[float]:
+    src = [patient_summary, *(f.model_dump_json() for f in flags)]
+    src += [f"{c.title or ''} {c.heading or ''} {c.text}" for cs in evidence.values() for c in cs]
+    return numbers(" ".join(src)) | {float(len(flags))}
+
+
+def validate(
+    text: str,
+    flags: list[Flag],
+    evidence: dict[str, list[EvidenceChunk]],
+    patient_summary: str,
+    finder: DrugNameFinder,
+) -> tuple[Report | None, list[Issue]]:
+    data, issues = parse(text)
+    if issues:
+        return None, issues
+    report, issues = to_report(data)
+    if issues:
+        return None, issues
+
+    by_id = {f.flag_id: f for f in flags}
+    supplied = {f.flag_id: {c.chunk_id for c in evidence.get(f.flag_id, [])} for f in flags}
+
+    def add(rule, where, message):
+        issues.append(Issue(rule=rule, where=where, message=message))
+
+    # rule 2
+    explained = [e.flag_id for e in report.flags_explained]
+    for fid in dict.fromkeys(explained):
+        if fid not in by_id:
+            add(2, f"explanation of {fid}", f"flag_id {fid!r} is not one of the flags given")
+        elif explained.count(fid) > 1:
+            add(2, f"explanation of {fid}", f"{fid} is explained more than once; give one entry")
+    for fid in by_id:
+        if fid not in explained:
+            add(2, "flags_explained", f'flag {fid} has no explanation: add an entry with '
+                f'"flag_id": "{fid}" to flags_explained (one per flag)')  # fmt: skip
+    for i, s in enumerate(report.suggestions_for_clinician_review):
+        if s.flag_id not in by_id:
+            add(2, f"suggestion {i + 1}", f"suggestion {i + 1} names unknown flag_id {s.flag_id!r}")
+
+    # rule 3 (and 5's "cites at least one", already enforced for suggestions by to_report)
+    cited = [(f"explanation of {e.flag_id}", e.flag_id, e.evidence_ids)
+             for e in report.flags_explained]  # fmt: skip
+    cited += [(f"suggestion {i + 1}", s.flag_id, s.evidence_ids)
+              for i, s in enumerate(report.suggestions_for_clinician_review)]  # fmt: skip
+    for where, fid, ids in cited:
+        if fid not in by_id:
+            continue
+        for eid in ids:
+            if eid not in supplied[fid]:
+                ok = sorted(supplied[fid]) or "none"
+                add(3, where, f"evidence ID {eid!r} was not supplied for {fid} (allowed: {ok})")
+    for e in report.flags_explained:
+        if e.flag_id in by_id and supplied[e.flag_id] and not e.evidence_ids:
+            add(3, f"explanation of {e.flag_id}", f"explanation of {e.flag_id} cites no evidence")
+    unc = " ".join(report.uncertainties).lower()
+    for fid, ids in supplied.items():
+        if not ids and fid not in unc and by_id[fid].drug.lower() not in unc:
+            add(3, "uncertainties", f"flag {fid} has no evidence; say so under uncertainties")
+
+    # rules 4, 6, 7 on every free-text field
+    allowed = allowed_drugs(flags, patient_summary, finder)
+    known = source_numbers(flags, evidence, patient_summary)
+    for where, t, is_suggestion in texts(report):
+        for raw, key in dict.fromkeys(finder.mentions(t)):
+            if key not in allowed:
+                add(4, where, f"{where} names {raw!r}, which is not prescribed or in a flag; "
+                    "remove it")  # fmt: skip
+        for why in instruction_problems(t, is_suggestion):
+            add(6, where, f"{where} {why}. Rewrite it to describe the finding and what the "
+                "evidence says, without telling anyone to stop, switch or avoid a drug or to "
+                "change a dose")  # fmt: skip
+        extra = sorted(numbers(t) - known)
+        if extra:
+            shown = ", ".join(f"{n:g}" for n in extra)
+            add(7, where, f"{where} has numbers not in the flags or evidence ({shown}); remove "
+                "them")  # fmt: skip
+    return (report if not issues else None), issues

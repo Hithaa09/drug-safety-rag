@@ -1,0 +1,102 @@
+{
+  "$defs": {
+    "FlagExplanation": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ids": {
+          "description": "Chunk IDs. May be empty only if the flag had no evidence; that must then be stated under `uncertainties` (spec prompt rules)",
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "flag_id": {
+          "title": "Flag Id",
+          "type": "string"
+        },
+        "plain_explanation": {
+          "minLength": 1,
+          "title": "Plain Explanation",
+          "type": "string"
+        }
+      },
+      "required": [
+        "flag_id",
+        "plain_explanation",
+        "evidence_ids"
+      ],
+      "title": "FlagExplanation",
+      "type": "object"
+    },
+    "Suggestion": {
+      "additionalProperties": false,
+      "properties": {
+        "evidence_ids": {
+          "description": "Spec validator rule 5: every suggestion cites evidence",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "flag_id": {
+          "title": "Flag Id",
+          "type": "string"
+        },
+        "text": {
+          "description": "Worded as 'Consider reviewing ...'",
+          "minLength": 1,
+          "title": "Text",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "flag_id",
+        "evidence_ids"
+      ],
+      "title": "Suggestion",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "description": "Exactly the JSON Qwen must return (spec p16). Extra fields are rejected.",
+  "properties": {
+    "flags_explained": {
+      "items": {
+        "$ref": "#/$defs/FlagExplanation"
+      },
+      "title": "Flags Explained",
+      "type": "array"
+    },
+    "suggestions_for_clinician_review": {
+      "items": {
+        "$ref": "#/$defs/Suggestion"
+      },
+      "title": "Suggestions For Clinician Review",
+      "type": "array"
+    },
+    "summary": {
+      "minLength": 1,
+      "title": "Summary",
+      "type": "string"
+    },
+    "uncertainties": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Uncertainties",
+      "type": "array"
+    }
+  },
+  "required": [
+    "summary",
+    "flags_explained",
+    "suggestions_for_clinician_review",
+    "uncertainties"
+  ],
+  "title": "Report",
+  "type": "object"
+}

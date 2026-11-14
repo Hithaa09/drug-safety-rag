@@ -1,0 +1,216 @@
+# DRAFT rules curated from FDA label text by Person B (2026-11-11). Not used for flags until
+# each row is reviewed: set status: approved, reviewed_by and reviewed_on (see curation/README.md).
+# Checked by `make verify-curation`.
+rules:
+- rule_id: lab_drug:egfr:lt30:metformin
+  drug: metformin
+  rxcui: '6809'
+  measure: egfr
+  operator: <
+  threshold: 30
+  label_measure: eGFR
+  label_threshold: '30'
+  label_unit: mL/minute/1.73 m2
+  action: Contraindicated below eGFR 30; discontinue if eGFR later falls below 30
+  severity: contraindicated
+  severity_basis: contraindicated
+  evidence:
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:001
+    quote: GLUMETZA is contraindicated in patients with an estimated glomerular filtration rate (eGFR)
+      below 30 mL/minute/1.73 m2.
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:001
+    quote: Discontinue GLUMETZA if the patient’s eGFR later falls below 30 mL/minute/1.73 m2
+  status: draft
+  notes: Spec worked example (eGFR about 28).
+- rule_id: lab_drug:egfr:lt45:metformin
+  drug: metformin
+  rxcui: '6809'
+  measure: egfr
+  operator: <
+  threshold: 45
+  label_measure: eGFR
+  label_threshold: '45'
+  label_unit: mL/minute/1.73 m2
+  action: Initiation not recommended at eGFR 30-45; if eGFR falls below 45, assess benefit and risk of
+    continuing
+  severity: moderate
+  severity_basis: assess the benefit
+  evidence:
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:001
+    quote: In patients taking GLUMETZA whose eGFR later falls below 45 mL/minute/1.73 m2, assess the benefit
+      risk of continuing therapy.
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:warnings_and_precautions:002
+    quote: Initiation of GLUMETZA is not recommended in patients with eGFR between 30 to 45 mL/minute/1.73
+      m2.
+  status: draft
+  notes: Below 30 the contraindication rule also fires; the engine should report the most severe rule
+    per drug and measure.
+- rule_id: lab_drug:egfr:lt30:rosuvastatin
+  drug: rosuvastatin
+  rxcui: '301542'
+  measure: egfr
+  operator: <
+  threshold: 30
+  label_measure: CLcr
+  label_threshold: '30'
+  label_unit: mL/min/1.73 m2
+  action: 'Severe renal impairment not on hemodialysis: start 5 mg once daily, do not exceed 10 mg once
+    daily'
+  severity: moderate
+  severity_basis: recommended starting dosage
+  evidence:
+  - chunk_id: dailymed:325a5d0e-9a72-4015-9fcd-1655fb504cee:dosage_and_administration:002
+    quote: In patients with severe renal impairment (CLcr less than 30 mL/min/1.73 m2) not on hemodialysis,
+      the recommended starting dosage is 5 mg orally once daily and should not exceed 10 mg orally once
+      daily
+  status: draft
+  proxy_note: Label states CLcr in mL/min/1.73 m2 (body-surface normalised); rule uses eGFR.
+  review_flags:
+  - Label measure is CLcr; rule uses eGFR (proxy). Pharmacist to confirm.
+- rule_id: lab_drug:egfr:lt30:simvastatin
+  drug: simvastatin
+  rxcui: '36567'
+  measure: egfr
+  operator: <
+  threshold: 30
+  label_measure: CLcr
+  label_threshold: '29'
+  label_unit: mL/min
+  action: 'Severe renal impairment (CLcr 15-29 mL/min): recommended starting dosage 5 mg once daily'
+  severity: moderate
+  severity_basis: recommended starting dosage
+  evidence:
+  - chunk_id: dailymed:8f55d5de-5a4f-4a39-8c84-c53976dd6af9:dosage_and_administration:002
+    quote: For patients with severe renal impairment [creatinine clearance (CLcr) 15 – 29 mL/min], the
+      recommended starting dosage of simvastatin is 5 mg once daily
+  status: draft
+  proxy_note: Label states CLcr 15-29 mL/min (Cockcroft-Gault); rule uses eGFR below 30 as the proxy.
+  notes: Label range 15-29 is written as < 30 (the label's upper bound 29 is checked against the quote).
+  review_flags:
+  - Label measure is CLcr (Cockcroft-Gault); rule uses eGFR (proxy). Pharmacist to confirm.
+- rule_id: lab_drug:egfr:lt30:tramadol
+  drug: tramadol
+  rxcui: '10689'
+  measure: egfr
+  operator: <
+  threshold: 30
+  label_measure: CLcr
+  label_threshold: '30'
+  label_unit: mL/min
+  action: ConZip (extended-release) should not be used in severe renal impairment (CLcr < 30 mL/min)
+  severity: major
+  severity_basis: should not be used
+  evidence:
+  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:clinical_pharmacology:009
+    quote: The pharmacokinetics of tramadol has not been studied in patients with severe renal impairment
+      (CLcr < 30 mL/min).
+  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:clinical_pharmacology:009
+    quote: Therefore, CONZIP should not be used in patients with severe renal impairment.
+  status: draft
+  proxy_note: Label defines severe renal impairment as CLcr < 30 mL/min (Cockcroft-Gault); rule uses eGFR.
+  notes: Specific to the extended-release product pinned (ConZip); an immediate-release tramadol label
+    may differ.
+  review_flags:
+  - Label measure is CLcr (Cockcroft-Gault); rule uses eGFR (proxy). Pharmacist to confirm.
+- rule_id: lab_drug:egfr:lt90:methotrexate
+  drug: methotrexate
+  rxcui: '6851'
+  measure: egfr
+  operator: <
+  threshold: 90
+  label_measure: CLcr
+  label_threshold: '90'
+  label_unit: mL/min
+  action: 'Renal impairment (CLcr < 90 mL/min): closely monitor for adverse reactions; reduce dose or
+    discontinue as appropriate'
+  severity: minor
+  severity_basis: closely monitor
+  evidence:
+  - chunk_id: dailymed:e942f8db-510f-44d6-acb5-b822196f5e8c:use_in_specific_populations:005
+    quote: Closely monitor patients with renal impairment [creatinine clearance (CLcr) less than 90 mL/min,
+      Cockcroft-Gault] for adverse reactions.
+  status: draft
+  proxy_note: Label states Cockcroft-Gault CLcr; rule uses eGFR.
+  notes: Threshold 90 will flag many older patients; severity minor (monitoring) per the label wording.
+  review_flags:
+  - Threshold 90 will flag many older patients; severity minor (monitoring) per the label wording.
+- rule_id: lab_drug:egfr:le60:allopurinol
+  drug: allopurinol
+  rxcui: '519'
+  measure: egfr
+  operator: <=
+  threshold: 60
+  label_measure: eGFR
+  label_threshold: '60'
+  label_unit: mL/minute
+  action: 'Gout with eGFR 60 or below: lower initial dosage (50 mg daily at >30-60; less at lower eGFR)'
+  severity: moderate
+  severity_basis: initial dosage
+  evidence:
+  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:dosage_and_administration:006
+    quote: The recommended initial dosages in adult patients with gout with impaired kidney function are
+      shown in Table 1
+  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:dosage_and_administration:006
+    quote: '> 30 to 60 mL/minute | 50 mg daily'
+  status: draft
+  notes: Label table uses eGFR in mL/minute (not normalised to body surface). Dose steps below 30 are
+    in the same table.
+- rule_id: lab_drug:anc:lt1_5:clozapine
+  drug: clozapine
+  rxcui: '2626'
+  measure: anc
+  operator: <
+  threshold: 1.5
+  label_measure: ANC
+  label_threshold: '1500'
+  label_unit: /μL
+  action: Initiation not recommended if baseline ANC is below 1500/µL
+  severity: major
+  severity_basis: not recommended
+  evidence:
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:warnings_and_precautions:001
+    quote: CLOZARIL initiation is not recommended in patients with a baseline ANC less than 1500/μL.
+  status: draft
+  notes: Benign ethnic neutropenia (BEN) has a lower threshold (1000/µL); the patient contract can't record
+    BEN yet.
+  review_flags:
+  - Applies to STARTING clozapine. For a patient already on it, ANC 1000-1499/µL is mild neutropenia,
+    where the label says continue with monitoring three times weekly; a major flag would overstate that.
+    The contract can't yet tell new from ongoing prescriptions (question for Person A).
+- rule_id: lab_drug:anc:lt1:clozapine
+  drug: clozapine
+  rxcui: '2626'
+  measure: anc
+  operator: <
+  threshold: 1.0
+  label_measure: ANC
+  label_threshold: '999'
+  label_unit: /μL
+  action: 'Moderate neutropenia (ANC 500-999/µL): interrupt treatment and recommend hematology consultation'
+  severity: major
+  severity_basis: interrupt treatment
+  evidence:
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:003
+    quote: Moderate Neutropenia (ANC between 500 to 999/μL)
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:003
+    quote: Interrupt treatment and recommend hematology consultation
+  status: draft
+  notes: Label range 500-999/µL written as < 1000/µL (= 1.0 ×10^3/µL); the label number checked is 999.
+- rule_id: lab_drug:anc:lt0_5:clozapine
+  drug: clozapine
+  rxcui: '2626'
+  measure: anc
+  operator: <
+  threshold: 0.5
+  label_measure: ANC
+  label_threshold: '500'
+  label_unit: /μL
+  action: 'Severe neutropenia (ANC below 500/µL): discontinue treatment and recommend hematology consultation'
+  severity: contraindicated
+  severity_basis: discontinue
+  evidence:
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:003
+    quote: Severe Neutropenia (ANC less than 500/μL)
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:003
+    quote: Discontinue treatment and recommend hematology consultation
+  status: draft

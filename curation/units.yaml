@@ -1,0 +1,12 @@
+# Converting the number written in a label to the rule's canonical unit (scope/lab_codes.yaml).
+# factor: rule_threshold = label_threshold * factor
+conversions:
+  - {label_unit: "mL/minute/1.73 m2", unit: "mL/min/1.73m2", factor: 1}
+  - {label_unit: "mL/min/1.73 m2",    unit: "mL/min/1.73m2", factor: 1}
+  - {label_unit: "mL/min",            unit: "mL/min/1.73m2", factor: 1}
+  - {label_unit: "mL/minute",         unit: "mL/min/1.73m2", factor: 1}
+  - {label_unit: "/μL",               unit: "10^3/uL",       factor: 0.001}
+# Proxy: when a label states creatinine clearance (label_measure: CLcr) and the rule uses
+# eGFR (CKD-EPI 2021, mL/min/1.73m2) instead, because the patient contract has no body weight.
+# FDA's 2020 draft renal guidance allows either eGFR or CLcr; a pharmacist must confirm each such
+# row, and each must say so in proxy_note.

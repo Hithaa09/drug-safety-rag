@@ -1,0 +1,10 @@
+{
+  "summary": "...",
+  "flags_explained": [
+    {"flag_id": "gene-001", "plain_explanation": "...", "evidence_ids": ["chunk-123"]}
+  ],
+  "suggestions_for_clinician_review": [
+    {"text": "Consider reviewing ...", "flag_id": "gene-001", "evidence_ids": ["chunk-123"]}
+  ],
+  "uncertainties": ["No creatinine value, renal rules skipped"]
+}
