@@ -1,4 +1,4 @@
-# The 26 gold retrieval cases written as real Flags (draft contract), the way the rule engine
+# The 28 gold retrieval cases (26, plus 2 HLA-B added 2026-11-14) written as real Flags (draft contract), the way the rule engine
 # would emit them: short engine-style reasons, not hand-tuned search queries. The retriever
 # builds its own query with flag.query_text() and filter with flag.drug_ids().
 # Expectations are taken from tests/gold/retrieval_labels.yaml by `case` id.

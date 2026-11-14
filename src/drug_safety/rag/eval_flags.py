@@ -2,7 +2,7 @@
 
     python -m drug_safety.rag.eval_flags
 
-The 26 gold cases written as engine-style Flags (tests/gold/retrieval_flags.yaml). The retriever
+The 28 gold cases written as engine-style Flags (tests/gold/retrieval_flags.yaml). The retriever
 builds its own query (flag.query_text()) and filter (flag.drug_ids()). Checks:
   - every flag's expected guideline or label passage is in its evidence (spec definition of
     done): the expected label passage (tests/gold/retrieval_labels.yaml, written before any
@@ -58,7 +58,7 @@ def cpic_matches(chunk, flag: Flag) -> bool:
 
 
 def evaluate(s, embedder) -> tuple[list[dict], list[str], dict]:
-    """Run the 26 gold flags through retrieve() and PostgreSQL.
+    """Run the 28 gold flags through retrieve() and PostgreSQL.
     Returns (one row per flag, failures, the retrieved evidence by case)."""
     expect = {c["id"]: c for c in yaml.safe_load(open(GOLD_FILE))["cases"]}
     flags = yaml.safe_load(open(FLAGS_FILE))["flags"]

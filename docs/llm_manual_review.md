@@ -9,7 +9,7 @@ summary or the evidence.
 ## Run 1: 2026-11-11, prompt `explain-v1`, plain mode
 
 Qwen 2.5 7B Instruct, vLLM 0.33.0, NVIDIA L4. Files: `data/outputs/2026-11-11_llm_eval/plain/`.
-**Read by:** Claude (assistant to Person B). **Confirmed by a person:** ☐ (pending)
+**Read by:** an AI assistant working with Person B (not yet a person). **Confirmed by a person:** ☐ (pending)
 
 The second column gives the verdict of the validator that ran (explain-v1); the third gives the
 verdict of the current validator on the same answers (`tests/llm/test_real_answers.py`).
@@ -38,7 +38,7 @@ asks for a human check.
 
 Qwen 2.5 7B Instruct, vLLM 0.33.0, NVIDIA L4 (same as run 1). Same 10 synthetic patients.
 Files: `data/outputs/2026-11-14_llm_eval/{guided,plain}/`.
-**Read by:** Claude (assistant to Person B). **Confirmed by a person:** ☐ (pending)
+**Read by:** an AI assistant working with Person B (not yet a person). **Confirmed by a person:** ☐ (pending)
 
 ### Numbers
 
@@ -98,6 +98,16 @@ are the same as plain, but it never produced broken JSON and fell back half as o
 - None of these is a banned phrase, so no rule can catch them. This is the error type the spec's human check is for.
 - Run 1's reading ("no invented claims") does not carry over to this run.
 
-Options, not done yet:
-1. **A prompt rule (explain-v3)**: "state only effects the passages state; do not add consequences or mechanisms". This needs a Colab run to measure.
-2. **Show the evidence passage next to each explanation in the UI** (already done), so the reader can check it.
+What was done about it (2026-11-14):
+1. **Root cause:** the model paraphrased with nothing tying a claim to a passage.
+2. **Fix, built:** prompt `explain-v3`. Each explanation must carry 1–3 sentences copied word for word from its evidence (validator rule 8 checks them), and may say only what those quotes say, keeping their limits. Tested offline only: **Run 3 (pending) measures it on the model.**
+3. **Already in place:** the screen shows the evidence passage next to each explanation, so a reader can check it.
+
+---
+
+## Run 3 (pending): prompt `explain-v3`, guided JSON
+
+To be filled in after the run, from `review.md` in that run's folder. Check especially:
+- whether every quote is real (rule 8 rejects any that aren't);
+- whether explanations stay within their quotes;
+- whether the four run-2 errors (p02 thrombosis, p06 smoking direction, p08 serotonin, p04 CYP3A4) recur.

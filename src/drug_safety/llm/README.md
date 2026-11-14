@@ -155,7 +155,7 @@ Root cause and fix: explain-v3 (rule 8 above). Not yet measured on the model: th
 | Command | Needs | What it does |
 |---|---|---|
 | `make fetch-drug-names` | Network (2 requests) | Drug name list for rule 4 |
-| `make llm-cases` | PostgreSQL | Retrieves and freezes the evidence for the 10 test patients ([tests/gold/llm_cases.yaml](../../../tests/gold/llm_cases.yaml): all 26 gold flags; patient 1 = spec worked example) |
+| `make llm-cases` | PostgreSQL | Retrieves and freezes the evidence for the 10 test patients ([tests/gold/llm_cases.yaml](../../../tests/gold/llm_cases.yaml): 26 of the 28 gold flags (not the two HLA-B ones); patient 1 = spec worked example) |
 | `make verify-llm` | Nothing (downloads Qwen's tokenizer once) | Offline checks + `pytest tests/llm` |
 | `make llm-bundle` | — | `data/outputs/llm_bundle.zip` for Colab |
 | `make llm-ping` | The model server | Is `MODEL_URL` up and serving `MODEL_NAME`? |

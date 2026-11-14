@@ -1,7 +1,7 @@
 # evaluation
 
-**Owner:** Person B · **Status:** built (2026-11-11). The LLM numbers that count wait for a
-Colab run with the current prompt.
+**Owner:** Person B · **Status:** built (2026-11-11), updated 2026-11-14. The LLM numbers that
+count wait for Colab run 3 with the current prompt (`explain-v3`).
 
 ## What it does
 Writes Person B's evaluation report, as the spec defines it ("Evaluation of the full pipeline"
@@ -10,10 +10,10 @@ model.
 
 | Section | Measured how |
 |---|---|
-| Retrieval hit rate | The 26 gold flags through `retrieve()` and PostgreSQL (`rag/eval_flags.py`): is the expected guideline or label chunk in the top 3? Split by flag type, label vs CPIC |
-| LLM faithfulness, fallback rate | Every Colab run in `data/outputs/*_llm_eval/`. Each answer is also **re-judged by today's validator**, so an old run is read with today's rules. Runs on an older prompt are marked |
-| Latency per patient | Without the LLM: retrieval + context for the 10 test patients, timed here (warm, median of 3), plus the one-off model load. With the LLM: that plus the model time from the latest run |
-| Definition of done (B's items 2, 4, 5, 6, 7) | PASS, FAIL (with the reason) or PENDING (what it waits for). Item 7 runs each module's tests on their own and checks each README has an environment-variable section |
+| Retrieval hit rate | The 28 gold flags through `retrieve()` and PostgreSQL (`rag/eval_flags.py`): is the expected guideline or label chunk in the top 3? Split by flag type, label vs CPIC |
+| LLM faithfulness, fallback rate | Every Colab run in `data/outputs/*_llm_eval/`. Each answer is also **re-judged by today's validator**, so an old run is read with today's rules. Runs on an older prompt are marked; answers from before explain-v3 are judged without rule 8 (they had no quotes) |
+| Latency per patient | Without the LLM: retrieval + context for the 10 test patients, timed here (warm, median of 3), plus the one-off model load. With the LLM: that plus the model time from the latest run in the default mode (guided JSON, current prompt), or the latest run if there is none |
+| Definition of done (B's items 2, 4, 5, 6, 7) | PASS, FAIL (with the reason), ACCEPTED DEVIATION (item 2: 344 papers, F1) or PENDING (what it waits for). Item 5 follows `docs/llm_manual_review.md`: PENDING until a run with the current prompt exists, CHECK until that run has a section there, REVIEWED, TO CONFIRM until a person ticks "Confirmed by a person", then REVIEWED. Item 7 runs each module's tests on their own and checks each README has an environment-variable section |
 
 Flag recall and precision are the rule engine's (Person A).
 
@@ -31,9 +31,10 @@ The manual check of LLM reports (spec: "about 10 reports") is recorded by hand i
 
 ## Tests
 `pytest tests/evaluation` (offline):
-- the definition-of-done statuses (344 papers fails; one missing hit fails; a module whose tests
+- the definition-of-done statuses (344 papers is an accepted deviation, 500 passes; one missing hit fails; a module whose tests
   fail, or whose README lacks the environment section, fails);
 - the README check, against made-up READMEs;
 - re-judging run 1 through its saved fixture (p09 is rejected today), and refusing when the
   answers don't match;
-- the report states when there is no Colab run.
+- the report states when there is no Colab run;
+- item 5 follows the manual review (PENDING, CHECK, REVIEWED, TO CONFIRM, REVIEWED).

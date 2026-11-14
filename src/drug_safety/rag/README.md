@@ -7,11 +7,11 @@
 | Label chunking | [`chunking.py`](chunking.py) | **Done**, verified 2026-11-11 |
 | Drug and gene tagging | [`tagging.py`](tagging.py) | **Done** (temporary dictionary until Person A's `drug_alias`) |
 | Paper chunking | [`chunk_papers.py`](chunk_papers.py) | **Done**: 6,933 chunks from 344 papers |
-| CPIC guideline chunking | [`chunk_cpic.py`](chunk_cpic.py) | **Done**: 171 chunks, one per recommendation (step 6d; see `ingest/README.md`) |
-| Embedding model choice | [`embeddings.py`](embeddings.py), [`eval_retrieval.py`](eval_retrieval.py) | **Done**: `bge-base-en-v1.5` kept (26/26 gold cases) |
-| Embeddings in the database | [`store.py`](store.py), [`../db.py`](../db.py) | **Done**: 998 chunks in `kb.evidence_chunks`, 26/26 gold cases via SQL |
+| CPIC guideline chunking | [`chunk_cpic.py`](chunk_cpic.py) | **Done**: 184 chunks (9 guidelines, HLA-B included), one per recommendation (step 6d; see `ingest/README.md`) |
+| Embedding model choice | [`embeddings.py`](embeddings.py), [`eval_retrieval.py`](eval_retrieval.py) | **Done**: `bge-base-en-v1.5` kept (26/26 at the time; now 28/28, MRR 0.798) |
+| Embeddings in the database | [`store.py`](store.py), [`../db.py`](../db.py) | **Done**: 1,519 label chunks (labels-v3) plus papers, CPIC, DPWG in `kb.evidence_chunks`; 28/28 gold cases via SQL |
 | Retrieval selection rule | `eval_retrieval.py` (`assemble`), `store.py` (`search_sql`) | **Changed in step 6c**: tier-balanced (see below) |
-| **Retriever** (`Flag` in, cited evidence out) | [`retriever.py`](retriever.py), [`eval_flags.py`](eval_flags.py) | **Done**: 26/26 gold flags through the contract and PostgreSQL |
+| **Retriever** (`Flag` in, cited evidence out) | [`retriever.py`](retriever.py), [`eval_flags.py`](eval_flags.py) | **Done**: 28/28 gold flags through the contract and PostgreSQL (label passage 28/28) |
 
 ---
 
@@ -19,8 +19,8 @@
 
 ## What it does
 
-It takes the 24 parsed FDA labels from the DailyMed loader and cuts them into **998 evidence
-chunks**: short passages that will be embedded and searched, so each flag can cite the exact
+It takes the 24 parsed FDA labels from the DailyMed loader and cuts them into **1,519 evidence
+chunks** (labels-v3, one topic each; 998 before 2026-11-14): short passages that will be embedded and searched, so each flag can cite the exact
 label text behind it.
 
 1. **Keeps only sections that can be evidence for a flag:** contraindications, warnings,
@@ -135,9 +135,10 @@ One chunk (shortened):
 
 ## Numbers from the real run
 
-- 998 chunks from 24 labels; tokens: min 31, median 328, max 477.
-- 121 chunks carry a gene tag; 134 mention another v1 drug besides their own; 319 name a drug class.
-- 49 chunks are under 100 tokens: short sections such as one-line contraindications or OTC
+- 1,519 chunks from 24 labels (labels-v3, 2026-11-14); tokens: min 21, median 181, max 477.
+  Smaller than labels-v2 (998 chunks, median 328) because each chunk now holds one topic.
+- 135 chunks carry a gene tag; 135 mention another v1 drug besides their own; 370 name a drug class.
+- 315 chunks are under 100 tokens (49 in labels-v2): short sections such as one-line contraindications or OTC
   warnings, kept whole on purpose.
 
 ## Tagging dictionary (`scope/drug_aliases.yaml`)
@@ -305,7 +306,7 @@ Order: `chunk-labels`, then `store-labels`. Rerun `store-labels` whenever the ch
 | every embedding has 768 dimensions / embedding model is bge-base | Vectors fit the column and come from the chosen model |
 | stored vectors equal the embedding of their text | Each vector really belongs to its chunk |
 | every document has chunks | No empty documents |
-| **gold retrieval via SQL: 26/26 in top 3** | The real pgvector search finds the expected passage for every gold flag |
+| **gold retrieval via SQL: 28/28 in top 3** | The real pgvector search finds the expected passage for every gold flag |
 | **SQL search gives the same top 3 as the in-memory evaluation** | The database search behaves exactly like the tested design |
 
 Last run, 2026-11-11: **9/9 passed.** Search takes about 7 ms per query with no vector index,
@@ -458,13 +459,13 @@ to before (26/26, SQL = in-memory, the same 14 supporting papers).
 ## How to know it works
 
 ```bash
-make eval-flags     # the 26 gold cases as real Flags, through retrieve() and PostgreSQL
+make eval-flags     # the 28 gold cases as real Flags, through retrieve() and PostgreSQL
 ```
 
 It must end in `RESULT: PASS`, which needs:
 - every flag's expected guideline or label passage in its evidence (spec definition of done). Last
-  run: **26/26**. The expected label passage was found for 25/26 flags, and the CPIC
-  recommendation for the same drug and phenotype for 8/9 gene flags (warfarin has none). For
+  run (2026-11-14): **28/28**. The expected label passage was found for 28/28 flags, and the CPIC
+  recommendation for the same drug and phenotype for 11/11 gene flags (warfarin has none; DPWG covers it). For
   celecoxib the CPIC chunk took the expected label section's slot; another label section is still
   in the evidence;
 - CPIC recommendations only for gene flags, only for their own phenotype (checked from the chunk

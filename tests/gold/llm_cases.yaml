@@ -1,5 +1,5 @@
 # Synthetic patients for the LLM evaluation (spec: "a manual check of about 10 reports").
-# Together they use every one of the 26 gold flags (tests/gold/retrieval_flags.yaml, by case),
+# Together they use 26 of the 28 gold flags (all but the two HLA-B ones, added later) (tests/gold/retrieval_flags.yaml, by case),
 # so the LLM explains the same flags whose retrieval is already checked. Patient 1 is the spec's
 # worked example (p18). Synthetic data only: these are the only patients sent to Colab.
 patients:
