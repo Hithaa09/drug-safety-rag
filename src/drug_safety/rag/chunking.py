@@ -11,10 +11,15 @@ Writes:  data/processed/chunks/dailymed.jsonl         one chunk per line (future
 How a label is chunked:
   1. Keep only clinically useful sections (KEEP_SECTIONS); drop patient leaflets, descriptions,
      packaging, trial narratives. An unknown section type stops the run until it is classified.
-  2. Within one top-level section, pack consecutive subsections together up to TARGET_TOKENS,
-     each subsection starting with its own heading line. Never mix two top-level sections.
-  3. A subsection longer than the limit is split at paragraph, line, then sentence boundaries,
-     with OVERLAP_TOKENS of overlap; every piece repeats the subsection heading.
+  2. One subsection per chunk, starting with its own heading line. Subsections are never packed
+     together: packing mixes topics in one vector, and the mixed chunk loses to a neighbouring
+     section (8.4 Pediatric + 8.5 Geriatric + 8.6 Renal in one chunk ranked below 8.7 Hepatic
+     for a renal flag, distance 0.264 vs 0.256; 8.6 alone: 0.208). Labels-v3, 2026-11-14.
+  3. A subsection longer than the limit is first cut at its inner headings (short title lines
+     such as "CYP1A2 and CYP3A4 Inducers", "Renal Impairment"), one topic per chunk; a topic
+     still too long is split at paragraph, line, then sentence boundaries, with OVERLAP_TOKENS
+     of overlap. Every piece repeats the subsection and inner heading. (Cut by size alone, the
+     clozapine smoking paragraph shared a chunk with anticholinergic and QT paragraphs.)
   4. Every chunk starts with a context line: "<drug> | <label title> | <top-level heading>".
   5. Tag each chunk with the v1 drugs and genes it mentions (plus the label's own drug).
 Token counts use the embedding model's own tokenizer, so no chunk is cut off when embedded.
@@ -41,8 +46,8 @@ from drug_safety.scope import load_scope
 
 log = logging.getLogger(__name__)
 
-CHUNKER_VERSION = "labels-v2"  # v2: drug-class tags
-TARGET_TOKENS = 400  # pack small subsections up to about this size
+CHUNKER_VERSION = "labels-v3"  # v2: drug-class tags; v3: chunks follow topic boundaries
+TARGET_TOKENS = 400  # paper chunker packing target (labels are no longer packed)
 MAX_TOKENS = 480  # hard limit per chunk; bge-base reads at most 512 including 2 special tokens
 OVERLAP_TOKENS = 50  # overlap between pieces of one long subsection
 SEPARATORS = ["\n\n", "\n", "; ", ". ", " ", ""]
@@ -195,6 +200,37 @@ def split_long_tables(text: str, count: TokenCounter, budget: int) -> str:
     return "\n\n".join(blocks)
 
 
+_INNER_HEADING = re.compile(r"^[A-Z][^\n|]{1,80}$")
+
+
+def is_inner_heading(block: str) -> bool:
+    """A paragraph that is a short title line: "CYP2C19 inhibitors", "Risk Summary"."""
+    b = block.strip()
+    return bool(
+        _INNER_HEADING.match(b)
+        and len(b.split()) <= 10
+        and b[-1] not in ".;,)"
+        and not re.match(r"(?i)(table|figure)\b", b)
+    )
+
+
+def topics(text: str) -> list[tuple[str, str]]:
+    """(inner heading or "", text) per topic, cut at inner headings; text before the first one
+    is a topic without a heading."""
+    out: list[tuple[str, list[str]]] = [("", [])]
+    blocks = text.split("\n\n")
+    for i, b in enumerate(blocks):
+        if i < len(blocks) - 1 and is_inner_heading(b):
+            head, body = out[-1]
+            if head and not body:  # a parent heading ("Drug Interaction Studies") right before
+                out[-1] = (f"{head} > {b.strip()}", [])  # its first sub-topic: keep both
+            else:
+                out.append((b.strip(), []))
+        else:
+            out[-1][1].append(b)
+    return [(h, "\n\n".join(bs).strip()) for h, bs in out if "\n\n".join(bs).strip()]
+
+
 def _unit_text(s: LabelSection) -> str:
     """Subsection text preceded by its own heading (below the top-level one)."""
     heading = " > ".join(s.heading_path[1:])
@@ -257,41 +293,31 @@ def chunk_label(
         if key not in KEEP_SECTIONS:
             continue
         context = _context_line(doc, group)
-        budget_target = TARGET_TOKENS - count(context) - 2
         budget_max = MAX_TOKENS - count(context) - 2
 
-        bodies: list[str] = []
-        headings: list[list[str]] = []
-        size = 0
         for s in group:
             unit = _unit_text(s)
-            unit_size = count(unit)
-            if unit_size > budget_max:
-                if bodies:
-                    emit(key, context, bodies, headings)
-                    bodies, headings, size = [], [], 0
-                heading = " > ".join(s.heading_path[1:])
-                head_cost = count(heading) + 1 if heading else 0
-                splitter = RecursiveCharacterTextSplitter(
-                    chunk_size=budget_max - head_cost,
-                    chunk_overlap=OVERLAP_TOKENS,
-                    length_function=count,
-                    separators=SEPARATORS,
-                    keep_separator="end",
-                )
-                prepared = split_long_tables(s.text, count, budget_max - head_cost)
-                for piece in splitter.split_text(prepared):
-                    body = f"{heading}\n{piece}" if heading else piece
-                    emit(key, context, [body], [s.heading_path])
+            if count(unit) > budget_max:
+                for inner, text in topics(s.text):
+                    path = s.heading_path + ([inner] if inner else [])
+                    heading = " > ".join(path[1:])
+                    head_cost = count(heading) + 1 if heading else 0
+                    body = f"{heading}\n{text}" if heading else text
+                    if count(body) <= budget_max:
+                        emit(key, context, [body], [path])
+                        continue
+                    splitter = RecursiveCharacterTextSplitter(
+                        chunk_size=budget_max - head_cost,
+                        chunk_overlap=OVERLAP_TOKENS,
+                        length_function=count,
+                        separators=SEPARATORS,
+                        keep_separator="end",
+                    )
+                    prepared = split_long_tables(text, count, budget_max - head_cost)
+                    for piece in splitter.split_text(prepared):
+                        emit(key, context, [f"{heading}\n{piece}" if heading else piece], [path])
                 continue
-            if bodies and size + unit_size + 2 > budget_target:
-                emit(key, context, bodies, headings)
-                bodies, headings, size = [], [], 0
-            bodies.append(unit)
-            headings.append(s.heading_path)
-            size += unit_size + 2
-        if bodies:
-            emit(key, context, bodies, headings)
+            emit(key, context, [unit], [s.heading_path])
     return chunks
 
 

@@ -19,7 +19,9 @@ import json
 
 from drug_safety.contracts import EvidenceChunk, Flag, Patient
 
-PROMPT_VERSION = "explain-v2"  # v2: E-labels, flag list, wording rules (first Colab run)
+PROMPT_VERSION = "explain-v3"  # v2: E-labels, flag list, wording rules (first Colab run)
+# v3: verbatim quotes per explanation; explanation says only what its quotes say; the
+# evidence's instructions go in quotes, not in the model's own words (second Colab run)
 
 SYSTEM = """You write a short drug-safety report for a pharmacist or clinician.
 A rule engine has already decided which findings are unsafe ("flags"). You do not decide what is
@@ -34,16 +36,23 @@ Rules:
 3. If a flag has no evidence, say so under "uncertainties" and leave its evidence_ids empty.
 4. Cite evidence by its label (E1, E2, ...) on every explanation and suggestion. Cite only
    labels listed under that same flag.
-5. Start every suggestion with "Consider reviewing", "Consider monitoring" or "Consider
-   checking". In every field, never tell anyone to stop, start, switch or avoid a drug, and never
-   say a dose should, must or needs to change. Describe what the evidence says instead.
-6. Return only JSON that matches the schema below. No markdown, no text before or after it.
+5. For every flag with evidence, copy one to three sentences from its evidence into "quotes",
+   word for word: the sentences your explanation rests on. Do not shorten or reword them.
+6. The plain_explanation says only what its quotes say, in one or two plain sentences. Do not
+   add effects, causes, mechanisms or risks that the quotes do not state. Keep their limits
+   ("at high dose", "more than 1.2 liters daily", "in poor metabolizers").
+7. Start every suggestion with "Consider reviewing", "Consider monitoring" or "Consider
+   checking". In your own words (summary, explanations, suggestions), never tell anyone to stop,
+   start, switch or avoid a drug, and never say a dose should, must or needs to change. When a
+   passage gives such an instruction, put that sentence in "quotes" instead of restating it.
+8. Return only JSON that matches the schema below. No markdown, no text before or after it.
 
 Schema:
 {
   "summary": "one or two sentences for the whole patient",
   "flags_explained": [
-    {"flag_id": "<a flag_id below>", "plain_explanation": "...", "evidence_ids": ["E1"]}
+    {"flag_id": "<a flag_id below>", "plain_explanation": "...", "evidence_ids": ["E1"],
+     "quotes": [{"evidence_id": "E1", "text": "<a sentence copied exactly from E1>"}]}
   ],
   "suggestions_for_clinician_review": [
     {"text": "Consider reviewing ...", "flag_id": "<a flag_id below>", "evidence_ids": ["E1"]}
@@ -53,12 +62,17 @@ Schema:
 Give exactly one entry in "flags_explained" for every flag."""
 
 
+# Patient fields left out of the summary on purpose. Every other field must appear
+# (tests/llm/test_prompts.py walks the contract, so a field added later cannot be dropped).
+SUMMARY_OMITS = {"patient_id"}  # an identifier, not clinical content
+
+
 def patient_summary(patient: Patient) -> str:
     """Short, de-identified summary (no patient_id): what Qwen needs to word the report."""
     lines = [f"{patient.age}-year-old {patient.sex}."]
     lines.append("Prescriptions: " + "; ".join(_rx(p) for p in patient.prescriptions) + ".")
     if patient.labs:
-        lines.append("Labs: " + "; ".join(f"{x.test} {x.value:g} {x.unit}" for x in patient.labs))
+        lines.append("Labs: " + "; ".join(_lab(x) for x in patient.labs))
     if patient.genotypes:
         lines.append(
             "Genotypes: " + "; ".join(f"{g.gene} {g.diplotype}" for g in patient.genotypes)
@@ -73,7 +87,16 @@ def patient_summary(patient: Patient) -> str:
               f"diet: {life.diet.type}" if life.diet.type else ""]  # fmt: skip
     if any(habits):
         lines.append("Lifestyle: " + ", ".join(h for h in habits if h) + ".")
+    # The meals are what diet rules fire on (grapefruit, vitamin K): without them the model sees
+    # a flag with no reason in the patient (second Colab run, p02 and p07).
+    if life.diet.meals:
+        lines.append("Meals: " + "; ".join(life.diet.meals) + ".")
     return "\n".join(lines)
+
+
+def _lab(x) -> str:
+    when = f" ({x.taken_at})" if x.taken_at else ""
+    return f"{x.test} {x.value:g} {x.unit}{when}"
 
 
 def _rx(p) -> str:
@@ -154,6 +177,9 @@ def resolve_labels(answer: str, labels: dict[str, str]) -> str:
             if isinstance(item, dict) and isinstance(item.get("evidence_ids"), list):
                 item["evidence_ids"] = [to_id.get(x, x) if isinstance(x, str) else x
                                         for x in item["evidence_ids"]]  # fmt: skip
+            for q in (item.get("quotes") or []) if isinstance(item, dict) else []:
+                if isinstance(q, dict) and isinstance(q.get("evidence_id"), str):
+                    q["evidence_id"] = to_id.get(q["evidence_id"], q["evidence_id"])
     return json.dumps(data, ensure_ascii=False)
 
 

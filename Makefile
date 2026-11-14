@@ -62,7 +62,7 @@ verify-classes: ## Offline checks that every drug is in the right classes
 check-updates: ## Network: has DailyMed published a newer version of any pinned label?
 	$(BIN)/python -m drug_safety.ingest.dailymed check-updates
 
-eval-retrieval: ## Retrieval test on 26 gold label cases (downloads the embedding model once)
+eval-retrieval: ## Retrieval test on the gold label cases (28) (downloads the embedding model once)
 	$(BIN)/python -m drug_safety.rag.eval_retrieval
 
 db-migrate: ## Create the document-store tables (safe to rerun; needs `make db`)
@@ -71,7 +71,7 @@ db-migrate: ## Create the document-store tables (safe to rerun; needs `make db`)
 store-labels: ## Embed the label chunks and load them into PostgreSQL (one transaction)
 	$(BIN)/python -m drug_safety.rag.store load
 
-verify-store: ## Checks on the database, including the 26 gold cases through SQL search
+verify-store: ## Checks on the database, including the gold cases (28) through SQL search
 	$(BIN)/python -m drug_safety.rag.store verify
 
 verify-curation: ## Checks on the curated rules (quotes, numbers, severity, coverage)
@@ -145,7 +145,7 @@ verify-bdpm: ## Offline checks: French word for word on the page, sheet up to da
 store-bdpm: ## Embed the reviewed acenocoumarol passages and load them into PostgreSQL
 	$(BIN)/python -m drug_safety.rag.store load --source bdpm
 
-eval-flags: ## Gold retrieval through the real path: Flag -> retriever -> PostgreSQL (26 flags)
+eval-flags: ## Gold retrieval through the real path: Flag -> retriever -> PostgreSQL (28 flags)
 	$(BIN)/python -m drug_safety.rag.eval_flags
 
 fetch-drug-names: ## Network: every prescribable drug name (RxNorm) for the LLM validator
@@ -168,7 +168,7 @@ llm-ping: ## Is the model server in MODEL_URL up and serving MODEL_NAME?
 	$(BIN)/python -m drug_safety.llm.client ping
 
 eval-llm: ## LLM evaluation on the 10 patients against MODEL_URL (plain, then schema-guided)
-	$(BIN)/python -m drug_safety.llm.eval_llm run --label plain
+	$(BIN)/python -m drug_safety.llm.eval_llm run --plain --label plain
 	$(BIN)/python -m drug_safety.llm.eval_llm run --guided --label guided
 
 stub-api: ## Stand-in for Person A's API on :8080 (the 10 example patients; real LLM layer)

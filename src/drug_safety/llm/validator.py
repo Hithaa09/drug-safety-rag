@@ -21,6 +21,14 @@ The rules, as the spec states them:
 Added by Person B (not in the spec's list, in its prompt rules):
   7. No number appears that is not in the flags, the evidence or the patient summary
      ("never add a dose or number"). Recorded separately so its effect can be measured.
+  8. (explain-v3) Every explanation of a flag that has evidence carries 1-3 `quotes`, each copied
+     word for word from one of that flag's passages. The quotes are checked here and then
+     dropped: the Report contract (spec) is unchanged. Why: run 2's wrong statements (smoking
+     "increases adverse reactions", "both drugs interfere with serotonin reuptake") came from
+     the model paraphrasing with nothing tying each claim to a passage; and the evidence's own
+     instructions ("avoid", "reduce the dose"), which the prompt forbade restating, had no
+     allowed place to go. A quote is that place, and it can be checked mechanically. Rules 4,
+     6, 7 don't apply to quotes (an exact copy of the evidence may name alternatives or doses).
 
 Messages are written for Qwen to read in the retry, and for a person reading the eval output.
 """
@@ -32,7 +40,7 @@ import re
 
 from pydantic import BaseModel, ValidationError
 
-from drug_safety.contracts import EvidenceChunk, Flag, Report
+from drug_safety.contracts import EvidenceChunk, Flag, FlagExplanation, Report
 from drug_safety.llm.drug_names import DrugNameFinder
 
 
@@ -40,6 +48,38 @@ class Issue(BaseModel):
     rule: int
     where: str
     message: str
+
+
+# ---------------------------------------------------------------- the model's answer (v3)
+
+
+class Quote(BaseModel):
+    model_config = {"extra": "forbid"}
+    evidence_id: str
+    text: str
+
+
+class AnswerExplanation(FlagExplanation):
+    quotes: list[Quote]  # required in the guided schema, so the model can't leave it out
+
+
+class Answer(Report):
+    """What Qwen returns from explain-v3: the Report plus, per explanation, verbatim quotes.
+    The schema sent to vLLM for guided JSON; the quotes are validated, then dropped."""
+
+    flags_explained: list[AnswerExplanation]
+
+
+QUOTE_WORDS = (5, 80)  # a quote shorter than this proves little; longer is a copy of the passage
+MAX_QUOTES = 3
+
+
+def _norm(text: str) -> str:
+    """Whitespace, quote marks and list bullets normalised: a quote copied across a line break
+    or with straight quotes still matches."""
+    text = text.replace("\u2019", "'").replace("\u2018", "'").replace("\u201c", '"')
+    text = text.replace("\u201d", '"').replace("\u2022", " ").replace("- •", " ")
+    return " ".join(text.split()).lower()
 
 
 # ---------------------------------------------------------------- rule 1: parse
@@ -60,6 +100,16 @@ def parse(text: str) -> tuple[dict | None, list[Issue]]:
     if not isinstance(data, dict):
         return None, [Issue(rule=1, where="answer", message="the answer must be one JSON object")]
     return data, []
+
+
+def take_quotes(data: dict) -> dict[str, list]:
+    """Remove the v3 `quotes` from each explanation (the Report has no such field); return them
+    by flag_id, as given (checked in validate)."""
+    out: dict[str, list] = {}
+    for e in data.get("flags_explained") or []:
+        if isinstance(e, dict) and "quotes" in e:
+            out.setdefault(str(e.get("flag_id")), []).extend(e.pop("quotes") or [])
+    return out
 
 
 def to_report(data: dict) -> tuple[Report | None, list[Issue]]:
@@ -128,6 +178,12 @@ _DOSE_NEEDED = [
     re.compile(rf"\bconsider(?:ing|ation of)?\s+{_W}{{0,3}}?{_DOSE_NOUN}\s+{_DOSE_STEM}", re.I),
     re.compile(rf"\bconsider(?:ing|ation of)?\s+{_W}{{0,2}}?{_DOSE_STEM}\s+{_W}{{0,2}}?"
                rf"{_DOSE_NOUN}\b", re.I),
+    # "necessitates a lower starting dose", "requires a lower dose" (second Colab run).
+    # Not after "may": "may require a lower dose" describes the label.
+    re.compile(rf"(?<!may )(?<!might )(?<!could )(?<!can )\b(?:requires?|requiring|"
+               rf"necessitat\w*|warrants?|warranting|calls? for|needs?)\s+{_W}{{0,2}}?"
+               rf"(?:lower|reduced|higher|increased|smaller|larger|adjusted|modified)\s+"
+               rf"{_W}{{0,2}}?{_DOSE_NOUN}\b", re.I),
 ]  # fmt: skip
 # "consider withholding, dose reducing, or discontinuing methotrexate"
 _CONSIDER_STOP = re.compile(rf"\bconsider(?:ing|ation of)?\s+{_W}{{0,3}}?{_STOP_ANY}", re.I)
@@ -137,6 +193,21 @@ _DOSE_ACTION = re.compile(
     r"\b(?:reduc|lower|decreas|increas|adjust|chang|modify|halv|doubl|titrat)ing\s+"
     rf"{_W}{{0,3}}?{_DOSE_NOUN}\b|\b(?:reduce|lower|decrease|increase|adjust|change|modify|halve|"
     rf"double|titrate)\s+(?:the|its|their|his|her)\s+{_W}{{0,2}}?{_DOSE_NOUN}\b",
+    re.I,
+)
+# In a suggestion, a dose change with the drug or "it" as object: "adjusting it according to
+# drug monitoring", "adjusting clopidogrel if necessary" (second Colab run). "Adjusting" and
+# "titrating" are always about the dose; the other verbs only with "it"/"them".
+_DOSE_OBJECT_ACTION = re.compile(
+    r"\b(?:adjust|titrat)ing\b|\b(?:adjust|titrate)\s+(?:it|them)\b|"
+    r"\b(?:reduc|lower|decreas|increas|halv|doubl|modify)ing\s+(?:it|them)\b",
+    re.I,
+)
+# In a suggestion, a switch phrased as considering an alternative: "considering alternative
+# glucose-lowering therapies". ("Consider reviewing alternative ..." is a review: allowed.)
+_CONSIDER_ALTERNATIVE = re.compile(
+    r"\bconsider(?:ing|ation of)?\s+(?:the\s+use\s+of\s+)?(?:an?\s+)?"
+    r"(?:alternative|alternate|another|different)\b",
     re.I,
 )
 REVIEW_VERBS = ("reviewing", "monitoring", "checking", "assessing", "evaluating", "discussing")
@@ -170,8 +241,10 @@ def instruction_problems(text: str, suggestion: bool) -> list[str]:
             out.append(f'suggests stopping or switching ("{m.group()}")')
         elif suggestion and (m := re.search(_STOP_ANY, s, re.I)):
             out.append(f'suggests stopping or switching ("{m.group()}")')
-        elif suggestion and (m := _DOSE_ACTION.search(s)):
+        elif suggestion and (m := _DOSE_ACTION.search(s) or _DOSE_OBJECT_ACTION.search(s)):
             out.append(f'suggests a dose change ("{m.group()}")')
+        elif suggestion and (m := _CONSIDER_ALTERNATIVE.search(s)):
+            out.append(f'suggests switching to another drug ("{m.group()}")')
     return out
 
 
@@ -222,10 +295,13 @@ def validate(
     evidence: dict[str, list[EvidenceChunk]],
     patient_summary: str,
     finder: DrugNameFinder,
+    require_quotes: bool = True,
 ) -> tuple[Report | None, list[Issue]]:
+    """require_quotes=False judges answers from prompts before explain-v3 (runs 1 and 2)."""
     data, issues = parse(text)
     if issues:
         return None, issues
+    quotes = take_quotes(data)
     report, issues = to_report(data)
     if issues:
         return None, issues
@@ -270,6 +346,37 @@ def validate(
     for fid, ids in supplied.items():
         if not ids and fid not in unc and by_id[fid].drug.lower() not in unc:
             add(3, "uncertainties", f"flag {fid} has no evidence; say so under uncertainties")
+
+    # rule 8: quotes, word for word from that flag's own passages
+    if require_quotes:
+        text_of = {c.chunk_id: _norm(c.text) for cs in evidence.values() for c in cs}
+        for e in report.flags_explained:
+            fid, where = e.flag_id, f"explanation of {e.flag_id}"
+            if fid not in by_id:
+                continue
+            qs = quotes.get(fid, [])
+            if supplied[fid] and not qs:
+                add(8, where, f'{where} has no quotes: copy one to three sentences that support '
+                    'it, word for word, from its evidence into "quotes"')  # fmt: skip
+            if len(qs) > MAX_QUOTES:
+                add(8, where, f"{where} has {len(qs)} quotes; give at most {MAX_QUOTES}")
+            for n, q in enumerate(qs, 1):
+                try:
+                    q = Quote.model_validate(q)
+                except ValidationError:
+                    add(8, where, f'quote {n} of {fid} must be {{"evidence_id": ..., "text": ...}}')
+                    continue
+                words = len(q.text.split())
+                if q.evidence_id not in supplied[fid]:
+                    add(8, where, f"quote {n} of {fid} is from {q.evidence_id!r}, which was not "
+                        f"supplied for {fid}")  # fmt: skip
+                elif _norm(q.text) not in text_of[q.evidence_id]:
+                    add(8, where, f"quote {n} of {fid} (\"{q.text[:60]}\") is not word for word "
+                        f"in {q.evidence_id}: copy the sentence exactly, without changing "
+                        "words")  # fmt: skip
+                elif not QUOTE_WORDS[0] <= words <= QUOTE_WORDS[1]:
+                    add(8, where, f"quote {n} of {fid} has {words} words; quote one or two whole "
+                        f"sentences ({QUOTE_WORDS[0]} to {QUOTE_WORDS[1]} words)")  # fmt: skip
 
     # rules 4, 6, 7 on every free-text field
     allowed = allowed_drugs(flags, patient_summary, finder)

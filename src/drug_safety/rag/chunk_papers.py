@@ -19,6 +19,7 @@ import argparse
 import json
 import re
 import sys
+from collections import Counter
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -26,7 +27,7 @@ from langchain_text_splitters import RecursiveCharacterTextSplitter
 from pydantic import BaseModel
 
 from drug_safety.config import Settings, get_settings
-from drug_safety.ingest.pmc import KEEP_SECTIONS, PaperDocument
+from drug_safety.ingest.pmc import KEEP_SECTIONS, PaperDocument, PaperSection
 from drug_safety.ingest.pmc import out_dir as papers_dir
 from drug_safety.rag.chunking import (
     MAX_TOKENS,
@@ -41,7 +42,7 @@ from drug_safety.rag.chunking import (
 from drug_safety.rag.tagging import Tagger, default_tagger
 from drug_safety.scope import load_scope
 
-CHUNKER_VERSION = "papers-v1"
+CHUNKER_VERSION = "papers-v2"  # v2: a table is one unit (caption + body + footnotes)
 LABEL = {
     "TITLE": "Title",
     "ABSTRACT": "Abstract",
@@ -52,9 +53,51 @@ LABEL = {
 }
 
 
+CAPTION_KINDS = {"table_caption", "table_title_caption"}
+FOOT_KINDS = {"table_footnote", "table_foot", "table_foot_title"}
+HEAD_WORDS = 80  # caption + footnotes kept as the heading of every piece of the table
+
+
+def table_units(sections: list[PaperSection]) -> list[PaperSection]:
+    """BioC gives a table as separate passages (caption, body, footnotes). Chunked one by one,
+    a caption whose table is too big to share its chunk ended up alone: 566 chunks of 7,551
+    (papers-v1) were a caption or a footnote with no data. Here each table becomes one unit:
+    caption and footnotes (abbreviations, units) as its heading, so every split piece repeats
+    them, and the body as text. On their own line the text splitter cut them off into a piece
+    with no data, so they cannot go in the text. Heading words past HEAD_WORDS are dropped
+    (long footnote lists). A caption or footnote with no table body (17 papers' BioC has none)
+    is dropped: without the data it is not evidence. Other passages pass through unchanged."""
+    out, table = [], None
+
+    def close():
+        if table and table["body"]:
+            words = " ".join(table["captions"] + table["foots"]).split()
+            head = " ".join(words[:HEAD_WORDS]) or table["heading"]
+            out.append(PaperSection(section="TABLE", kind="table", heading=head,
+                                    text="\n".join(table["body"])))  # fmt: skip
+
+    for s in sections:
+        if s.section != "TABLE":
+            close()
+            table = None
+            out.append(s)
+        elif s.kind in CAPTION_KINDS:
+            if table is None or table["body"] or table["foots"]:
+                close()
+                table = {"heading": s.heading, "captions": [], "body": [], "foots": []}
+            table["captions"].append(s.text)
+        else:
+            if table is None or (s.kind not in FOOT_KINDS and table["body"]):
+                close()
+                table = {"heading": s.heading, "captions": [], "body": [], "foots": []}
+            table["foots" if s.kind in FOOT_KINDS else "body"].append(s.text)
+    close()
+    return out
+
+
 def _groups(doc: PaperDocument):
     groups = []
-    for s in doc.sections:
+    for s in table_units(doc.sections):
         if groups and groups[-1][0].section == s.section:
             groups[-1].append(s)
         else:
@@ -287,6 +330,7 @@ def verify(settings: Settings, count: TokenCounter, tagger: Tagger) -> list[Chec
     # some chunk of that paper. (Table rows have no sentence breaks, so a sentence check can't
     # tell "split across two chunks" from "lost"; word windows can.)
     missing = []
+    dropped = Counter()
     for d in docs:
         windows = set()
         for c in by_doc.get(d.doc_id, []):
@@ -302,8 +346,14 @@ def verify(settings: Settings, count: TokenCounter, tagger: Tagger) -> list[Chec
             ).split()
             joined += words[_overlap(joined, words) :]  # drop the repeated overlap
         body = " ".join(joined)
-        for s in d.sections:
-            w = s.text.split()
+        units = table_units(d.sections)
+        dropped["tables without a body"] += sum(
+            1 for s in d.sections if s.kind in CAPTION_KINDS
+        ) - sum(1 for u in units if u.section == "TABLE")
+        # a table's caption and footnotes are its heading: check them as text too
+        texts = [u.text for u in units] + [u.heading for u in units if u.section == "TABLE"]
+        for text in texts:
+            w = text.split()
             if len(w) < 8:  # too short for a window: the whole text must be in a chunk
                 full = " ".join(" ".join(c.text.split()) for c in by_doc.get(d.doc_id, []))
                 if " ".join(w) not in full:
@@ -326,6 +376,8 @@ def verify(settings: Settings, count: TokenCounter, tagger: Tagger) -> list[Chec
         [(c.chunk_id, c.text) for c in again] == [(c.chunk_id, c.text) for c in chunks],
         "rerun",
     )
+    add("report: left out on purpose (a caption with no table data is not evidence)", True)
+    checks[-1].detail = f"{dropped['tables without a body']} tables without a body"
     untagged = sum(not c.drugs for c in chunks)
     add("report: chunks naming no v1 drug (unreachable by the drug filter; not a failure)", True)
     checks[-1].detail = f"{untagged} of {len(chunks)}"

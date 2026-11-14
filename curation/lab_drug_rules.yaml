@@ -15,10 +15,10 @@ rules:
   severity: contraindicated
   severity_basis: contraindicated
   evidence:
-  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:001
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:002
     quote: GLUMETZA is contraindicated in patients with an estimated glomerular filtration rate (eGFR)
       below 30 mL/minute/1.73 m2.
-  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:001
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:002
     quote: Discontinue GLUMETZA if the patient’s eGFR later falls below 30 mL/minute/1.73 m2
   status: draft
   notes: Spec worked example (eGFR about 28).
@@ -36,7 +36,7 @@ rules:
   severity: moderate
   severity_basis: assess the benefit
   evidence:
-  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:001
+  - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:dosage_and_administration:002
     quote: In patients taking GLUMETZA whose eGFR later falls below 45 mL/minute/1.73 m2, assess the benefit
       risk of continuing therapy.
   - chunk_id: dailymed:fb832474-88d9-4e29-95cd-fbc446944cc4:warnings_and_precautions:002
@@ -59,7 +59,7 @@ rules:
   severity: moderate
   severity_basis: recommended starting dosage
   evidence:
-  - chunk_id: dailymed:325a5d0e-9a72-4015-9fcd-1655fb504cee:dosage_and_administration:002
+  - chunk_id: dailymed:325a5d0e-9a72-4015-9fcd-1655fb504cee:dosage_and_administration:005
     quote: In patients with severe renal impairment (CLcr less than 30 mL/min/1.73 m2) not on hemodialysis,
       the recommended starting dosage is 5 mg orally once daily and should not exceed 10 mg orally once
       daily
@@ -80,7 +80,7 @@ rules:
   severity: moderate
   severity_basis: recommended starting dosage
   evidence:
-  - chunk_id: dailymed:8f55d5de-5a4f-4a39-8c84-c53976dd6af9:dosage_and_administration:002
+  - chunk_id: dailymed:8f55d5de-5a4f-4a39-8c84-c53976dd6af9:dosage_and_administration:004
     quote: For patients with severe renal impairment [creatinine clearance (CLcr) 15 – 29 mL/min], the
       recommended starting dosage of simvastatin is 5 mg once daily
   status: draft
@@ -101,10 +101,10 @@ rules:
   severity: major
   severity_basis: should not be used
   evidence:
-  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:clinical_pharmacology:009
+  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:clinical_pharmacology:018
     quote: The pharmacokinetics of tramadol has not been studied in patients with severe renal impairment
       (CLcr < 30 mL/min).
-  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:clinical_pharmacology:009
+  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:clinical_pharmacology:018
     quote: Therefore, CONZIP should not be used in patients with severe renal impairment.
   status: draft
   proxy_note: Label defines severe renal impairment as CLcr < 30 mL/min (Cockcroft-Gault); rule uses eGFR.
@@ -126,7 +126,7 @@ rules:
   severity: minor
   severity_basis: closely monitor
   evidence:
-  - chunk_id: dailymed:e942f8db-510f-44d6-acb5-b822196f5e8c:use_in_specific_populations:005
+  - chunk_id: dailymed:e942f8db-510f-44d6-acb5-b822196f5e8c:use_in_specific_populations:007
     quote: Closely monitor patients with renal impairment [creatinine clearance (CLcr) less than 90 mL/min,
       Cockcroft-Gault] for adverse reactions.
   status: draft
@@ -147,10 +147,10 @@ rules:
   severity: moderate
   severity_basis: initial dosage
   evidence:
-  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:dosage_and_administration:006
+  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:dosage_and_administration:009
     quote: The recommended initial dosages in adult patients with gout with impaired kidney function are
       shown in Table 1
-  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:dosage_and_administration:006
+  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:dosage_and_administration:009
     quote: '> 30 to 60 mL/minute | 50 mg daily'
   status: draft
   notes: Label table uses eGFR in mL/minute (not normalised to body surface). Dose steps below 30 are
@@ -168,7 +168,7 @@ rules:
   severity: major
   severity_basis: not recommended
   evidence:
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:warnings_and_precautions:001
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:warnings_and_precautions:002
     quote: CLOZARIL initiation is not recommended in patients with a baseline ANC less than 1500/μL.
   status: draft
   notes: Benign ethnic neutropenia (BEN) has a lower threshold (1000/µL); the patient contract can't record
@@ -190,9 +190,9 @@ rules:
   severity: major
   severity_basis: interrupt treatment
   evidence:
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:003
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:004
     quote: Moderate Neutropenia (ANC between 500 to 999/μL)
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:003
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:004
     quote: Interrupt treatment and recommend hematology consultation
   status: draft
   notes: Label range 500-999/µL written as < 1000/µL (= 1.0 ×10^3/µL); the label number checked is 999.
@@ -209,8 +209,8 @@ rules:
   severity: contraindicated
   severity_basis: discontinue
   evidence:
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:003
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:004
     quote: Severe Neutropenia (ANC less than 500/μL)
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:003
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:dosage_and_administration:004
     quote: Discontinue treatment and recommend hematology consultation
   status: draft

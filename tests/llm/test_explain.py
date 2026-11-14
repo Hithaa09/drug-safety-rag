@@ -62,6 +62,8 @@ def test_answer_in_labels_is_resolved_and_retry_speaks_labels(good, flags, evide
     labelled = json.loads(json.dumps(good))
     for item in labelled["flags_explained"] + labelled["suggestions_for_clinician_review"]:
         item["evidence_ids"] = [inv[x] for x in item["evidence_ids"]]
+        for q in item.get("quotes", []):
+            q["evidence_id"] = inv[q["evidence_id"]]
     bad = json.loads(json.dumps(labelled))
     bad["flags_explained"][0]["evidence_ids"] = ["E3"]  # E3 belongs to ddi-001
     llm = Scripted(bad, labelled)
@@ -70,3 +72,17 @@ def test_answer_in_labels_is_resolved_and_retry_speaks_labels(good, flags, evide
     assert r.report.flags_explained[0].evidence_ids == ["cpic-clopidogrel-01"]  # real IDs
     retry = llm.sent[1][-1]["content"]
     assert "'label-clop-ddi'" not in retry and "E3" in retry and "E1" in retry
+
+
+def test_eval_llm_mode_flags(monkeypatch):
+    """Guided is the default (second Colab run); --plain must really turn it off."""
+    from drug_safety.config import Settings
+    from drug_safety.llm import eval_llm
+
+    assert Settings.model_fields["model_guided_json"].default is True
+    seen = []
+    monkeypatch.setattr(eval_llm, "run", lambda s, label, *a: seen.append((s.model_guided_json,
+                                                                          label)))  # fmt: skip
+    for argv in (["run", "--plain"], ["run", "--guided"], ["run", "--plain", "--label", "x"]):
+        eval_llm.main(argv)
+    assert seen == [(False, "plain"), (True, "guided"), (False, "x")]

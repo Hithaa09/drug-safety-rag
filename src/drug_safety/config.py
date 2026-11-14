@@ -23,8 +23,10 @@ class Settings(BaseSettings):
     model_name: str = "Qwen/Qwen2.5-7B-Instruct"
     # API key the model server requires (vLLM --api-key); "local" when it requires none.
     model_api_key: str = "local"
-    # True: ask vLLM to constrain output to the Report JSON schema.
-    model_guided_json: bool = False
+    # True: ask vLLM to constrain output to the Report JSON schema. Default since the second
+    # Colab run (2026-11-14): same text and speed as plain, but no broken JSON and 0/10
+    # template fallbacks against 3/10 (docs/llm_manual_review.md, Run 2).
+    model_guided_json: bool = True
     # Longest answer, in tokens, and how long to wait for it.
     model_max_tokens: int = 1500
     model_timeout_s: float = 180.0

@@ -55,6 +55,28 @@ _PHENOTYPE_LINE = re.compile(r"^(\S+) phenotype: (.+)$", re.M)
 _NO_EFFECT = re.compile(r"^(?:normal|indeterminate|n/a|no result)\b|\bnegative$|^no\b.*\bresult$")
 
 
+# Words a passage must contain to be about a lifestyle flag's factor. Embeddings weigh the drug
+# and "levels" over the factor: for clozapine + smoking, a CYP2D6 passage ("higher plasma
+# concentrations of clozapine") ranked above the one naming tobacco smoke (2026-11-14).
+LIFESTYLE_TERMS = {
+    "smoking": r"smok|tobacco|cigarette|nicotine",
+    "alcohol": r"alcohol|ethanol|drinks?\b",
+    "grapefruit": r"grapefruit",
+    # about diet, not vitamin K as warfarin's antidote (10.2 Treatment matched "vitamin k")
+    "high_vitamin_k": r"vitamin k (?:intake|in (?:the )?food|content)|\bdiet|leafy|vegetables",
+}
+
+
+def mentions_trigger(flag: Flag | None, text: str) -> bool:
+    """True unless the flag is a lifestyle flag and the passage never names its factor."""
+    if flag is None or flag.flag_type != FlagType.lifestyle_drug or not flag.lifestyle:
+        return True
+    f = flag.lifestyle
+    key = f.factor_type if f.factor_type in LIFESTYLE_TERMS else f.factor_value
+    pattern = LIFESTYLE_TERMS.get(key, re.escape(f.factor_value.replace("_", " ")))
+    return re.search(pattern, text, re.I) is not None
+
+
 def _phenotype(p: str) -> str:
     """'Likely Poor Metabolizer' -> 'poor metabolizer' (CPIC: same recommendation)."""
     return re.sub(r"^likely\s+", "", p.strip().lower())
@@ -139,7 +161,9 @@ def select(
     # Only for the AUTHORITY_K main slots. A fill-in slot (when there is no paper) goes back to
     # plain distance: for methotrexate + pantoprazole, own-first put an antiretroviral passage
     # from the pantoprazole label ahead of the omeprazole label's methotrexate passage.
-    head = sorted(kept, key=lambda h: (secondary(h), h.distance))[:AUTHORITY_K]
+    # For a lifestyle flag, passages that name the factor come first (LIFESTYLE_TERMS).
+    head = sorted(kept, key=lambda h: (not mentions_trigger(flag, text[h.chunk_id]),
+                                       secondary(h), h.distance))[:AUTHORITY_K]  # fmt: skip
     authority = (head + [h for h in kept if h not in head])[:k]
     support = (
         [

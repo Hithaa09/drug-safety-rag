@@ -21,9 +21,27 @@ def test_example_patient_without_model_gets_template(start_stub, example):
     assert resp.data_gaps == []  # p01 has creatinine, a genotype and smoking
 
 
-def test_example_patient_with_model_answer(start_stub, example, good):
+QUOTES = {  # explain-v3: the model's answer carries verbatim quotes (validated, then dropped)
+    "gene-001": ("cpic-clopidogrel-01", None),
+    "ddi-001": ("label-clop-ddi", "Omeprazole reduced active metabolite exposure by 45%."),
+    "lab-001": ("label-met-renal", "Metformin is contraindicated in patients with an eGFR "
+                "below 30 mL/min/1.73 m2."),
+}  # fmt: skip
+
+
+def with_quotes(report: dict, evidence) -> dict:
+    answer = json.loads(json.dumps(report))
+    for e in answer["flags_explained"]:
+        cid, text = QUOTES[e["flag_id"]]
+        text = text or next(c.text for c in evidence[e["flag_id"]] if c.chunk_id == cid)
+        e["quotes"] = [{"evidence_id": cid, "text": text}]
+    return answer
+
+
+def test_example_patient_with_model_answer(start_stub, example, good, evidence):
+    answer = with_quotes(good, evidence)
     resp = AssessResponse.model_validate(
-        post(start_stub(llm=lambda m: json.dumps(good)), example.patient).json()
+        post(start_stub(llm=lambda m: json.dumps(answer)), example.patient).json()
     )
     assert resp.report_source == "llm" and resp.notice is None
     assert resp.report.summary == good["summary"]

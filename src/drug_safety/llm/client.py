@@ -19,7 +19,6 @@ from collections.abc import Callable
 import httpx
 
 from drug_safety.config import Settings, get_settings
-from drug_safety.contracts import Report
 
 TEMPERATURE = 0.1
 ChatFn = Callable[[list[dict]], str]
@@ -38,7 +37,9 @@ def chat_model(settings: Settings) -> ChatFn:
         max_retries=1,  # network retry only; the validator retry is explain()'s job
     )
     if settings.model_guided_json:
-        schema = {"name": "Report", "schema": Report.model_json_schema(), "strict": True}
+        from drug_safety.llm.validator import Answer  # the Report plus verbatim quotes (v3)
+
+        schema = {"name": "Report", "schema": Answer.model_json_schema(), "strict": True}
         llm = llm.bind(response_format={"type": "json_schema", "json_schema": schema})
 
     def call(messages: list[dict]) -> str:

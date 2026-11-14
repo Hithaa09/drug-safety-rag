@@ -52,8 +52,11 @@ def test_banner_on_first_screen(start_stub, api_url):
     assert any(c.value == f"`{url}`" for c in at.sidebar.caption)
 
 
-def test_full_report(start_stub, api_url, good):
-    api_url(start_stub(llm=lambda m: json.dumps(good)))
+def test_full_report(start_stub, api_url, good, evidence):
+    from .test_stub_api import with_quotes
+
+    answer = with_quotes(good, evidence)  # the model's answer (v3) carries quotes
+    api_url(start_stub(llm=lambda m: json.dumps(answer)))
     at = assess(load_example(run_app()))
     assert at.text_input[0].value == "p01"
     table = at.dataframe[-1].value

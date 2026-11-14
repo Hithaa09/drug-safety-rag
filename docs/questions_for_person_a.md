@@ -123,7 +123,7 @@ Details: [docs/sources.md](sources.md).
 | # | Question | B's proposal | Status |
 |---|---|---|---|
 | E1 ⭐ | Is the project **commercial**, now or later? | If yes, DDInter (CC BY-NC-SA) must be replaced and the 116 non-commercial papers (CC BY-NC, marked per paper) removed. If no, both can stay | ✅ |
-| E2 ⭐ | **Acenocoumarol** (no US label): use the French BDPM Sintrom label? | Yes. Licence Ouverte 1.0: credit the source and date, and don't alter it. Use it with a reviewed English translation; gene-drug comes from DPWG via ClinPGx. B builds the loader once you agree | ✅ |
+| E2 ⭐ | **Acenocoumarol** (no US label): use the French BDPM Sintrom label? | Yes. Licence Ouverte 2.0 (corrected 2026-11-14; earlier notes said 1.0): credit the source and the date of last update; adaptation, including translation, is allowed. Use it with a reviewed English translation; gene-drug comes from DPWG via ClinPGx. B builds the loader once you agree | ✅ |
 | E3 | Add **HLA-B** to the v1 genes? | Worth it: CPIC level A for allopurinol and phenytoin (severe skin reactions). Not possible with the current 5 genes | ✅ |
 | E4 | Are the **6 labels marked `check`** acceptable? | Yes. They aren't repackager problems, just formulation choices (OTC, extended-release) or drugs with no holder label. See `scope/dailymed_labels.yaml` | ✅ |
 | E5 ⭐ | Load **DPWG guideline annotations from ClinPGx**? They are the only gene guidance for acenocoumarol, and fill CPIC's gaps for warfarin and clozapine | Yes, only for those 5 pairs (acenocoumarol and warfarin × CYP2C9/VKORC1, clozapine × CYP2D6). Licence: CC BY-SA 4.0 plus share-alike agreement and "no sale for private or commercial use" (ClinPGx `LICENSE.txt`). Fine for an academic project; it ties in with E1 | ✅ |
@@ -178,6 +178,23 @@ Details: [docs/sources.md](sources.md).
 - G3: Agree with B's proposal (2026-11-14)
 - G4: Agree with B's proposal (2026-11-14)
 - G5: Agree with B's proposal (2026-11-14)
+
+## H. After the second Colab run (2026-11-14): changes you need to know, and new questions
+
+Run 2 used Qwen 2.5 7B on an L4 with prompt `explain-v2` and covered the 10 test patients twice, plain and guided JSON. Every report was read; the faults were traced to their root causes and fixed (docs/progress.md, "Root causes of the run-2 faults"). The items below affect your side.
+
+| # | Question or notice | B's proposal | Status |
+|---|---|---|---|
+| H1 ⭐ | **Chunk IDs changed.** Label chunks now follow topic boundaries (`labels-v3`: one subsection per chunk, long subsections cut at inner headings) and paper tables are one unit (`papers-v2`). Label chunks 998 → 1,519, paper chunks 7,551 → 6,933, so the `chunk_id` numbering moved. Does anything on your side store chunk IDs? | Treat chunk IDs as valid for one load only (`load_id`). B re-pointed the 51 curated-rule quotes to the new IDs (text unchanged; curation verify 682/682). If you copied seeds or chunk rows before today, re-export after `make store-labels store-papers` | ⬜ |
+| H2 ⭐ | **Lifestyle flags: the factor must be named.** The retriever now puts passages that name the flag's factor first (smoking/tobacco, alcohol, grapefruit, dietary vitamin K; `LIFESTYLE_TERMS` in `rag/retriever.py`). It matches on `lifestyle.factor_type` and `factor_value`. Will the engine use only the values agreed in A3 and C3? | Yes: `smoking`, `alcohol`, and diet tags `grapefruit`, `high_vitamin_k`, `caffeine`. Tell B before adding a new tag, so its terms are added (an unknown tag falls back to the tag's own words) | ⬜ |
+| H3 | **Pass `diet.meals` through unchanged.** The report's patient summary now shows the meals. Before, it dropped them, so the model saw a grapefruit or vitamin K flag with no reason in the patient | Your API passes the `Patient` to `llm.explain_patient` as received. Nothing to change if it already does | ⬜ |
+| H4 | **The model now returns quotes (prompt `explain-v3`).** Each explanation carries 1–3 sentences copied word for word from its evidence. New validator rule 8 checks them, then drops them, so the `Report` contract is **unchanged**. Show them on the screen too? | Not yet. After Colab run 3 shows the model copies reliably, add an optional `quotes` field to `FlagExplanation` (contract 0.2.0). The screen would show the exact sentence each explanation rests on | ⬜ |
+| H5 | **Guided JSON is now the default** (`MODEL_GUIDED_JSON=true`). The model server must support OpenAI's `response_format: json_schema`. vLLM does | Keep it. In run 2 it gave 0/10 template fallbacks against 3/10 in plain mode, at the same speed. On a server without it, set `MODEL_GUIDED_JSON=false` | ⬜ |
+| H6 ⭐ | **The retrieval score is self-graded.** 28/28 is measured on 28 flags B wrote. Needed: real flags from the engine (F4), and your gold cases (C6) | Send real flags as soon as the engine emits them. The paper cut-off (0.235) and the lifestyle rule were set on B's flags and must be rechecked on real ones | ⬜ |
+| H7 ⭐ | **Who confirms the manual review?** Run 2's reading was done by an AI assistant. It found 5 wrong or unsupported statements in 20 reports, and no invented drug, dose or number (`docs/llm_manual_review.md`). The spec asks for a human check | A person on the team (ideally clinically trained) reads run 3's `review.md` and ticks "Confirmed by a person" | ⬜ |
+| H8 | **Rule 6 is strict on restated dose wording.** "She requires a lower dose of warfarin" is rejected, even though it repeats the flag's own reason ("lower warfarin dose requirement"). Keep it strict? | Keep. A rejected answer is retried, then falls back to the template, which is always safe. With v3 the model can quote the label's dose sentence instead | ⬜ |
+
+**What is still open from earlier:** A7 (alcohol amount), A10 (HLA-B and VKORC1 phenotype wording), B7 (HLA-B in your `scope/v1.yaml`), C7 (no flags for "no action" pairs), E7 (who reviews the French translation).
 
 ---
 

@@ -789,3 +789,106 @@ label now comes first.
 **Open for Person A:** B7 (add HLA-B to his `v1.yaml`), and A10 (how a HLA-B flag states its
 result; the screen asks for `*58:01 positive`).
 
+
+## Second Colab run: guided vs plain, validator gaps closed (2026-11-14)
+
+**What:** The second Colab run used the same setup as run 1 (L4, Qwen 2.5 7B, vLLM 0.33.0) with prompt `explain-v2` and CPIC/DPWG evidence. It covered the 10 synthetic patients twice, plain and guided JSON. Every answer was read by hand (`docs/llm_manual_review.md`, Run 2).
+
+**Results:**
+
+| | Guided | Plain |
+|---|---|---|
+| First try / after retry / template | 3 / 7 / **0** | 3 / 4 / **3** |
+| Broken JSON | 0 | 1 |
+| Seconds per answer | 27 | 27 (run 1: 55) |
+
+**Decisions:**
+- Guided JSON is now the default (`MODEL_GUIDED_JSON=true`). `eval_llm run --plain` runs plain, and the Makefile and notebook now say `--plain` explicitly.
+- `make eval-report` takes latency from the guided run.
+
+**Found while checking:**
+1. Four rule-6 gaps let dose or switch wording through:
+   - "necessitates a lower starting dose";
+   - "adjusting it";
+   - "adjusting clopidogrel";
+   - "considering alternative … therapies".
+
+   All four are closed and tested. Statements that only describe, such as "may require a lower dose", "Consider reviewing alternative options" and "to ensure appropriate dosing", still pass.
+
+   Re-judged, guided drops to 2 / 5 / 2 (p02's only answer is now rejected). The extra rejections are real dose wording, not false alarms.
+2. Wrong or unsupported statements that no rule can catch:
+   - guided p02 (thrombosis), p06 (smoking direction) and p08 (serotonin);
+   - plain p04 (invented "strong CYP3A4 inhibitor").
+
+   No invented drug, dose or number appears. Run 1's "no invented claims" does not hold for run 2.
+3. My first re-judge script mapped the E-labels the wrong way round, so every citation failed. Caught at once and fixed; `report.py` already did it correctly.
+4. The report said "26 hand-written" gold flags. There are 28, and the number is now computed.
+
+**How it was checked:**
+
+| Check | Result |
+|---|---|
+| `tests/llm/test_real_answers_run2.py` | All 40 run-2 attempts get the expected verdict |
+| `tests/llm/test_real_answers.py` (run 1) | Unchanged verdicts |
+| `make eval-report` | Item 5 shows **REVIEWED, TO CONFIRM**; 28/28 retrieval |
+| `make check` | Lint clean, **354 tests pass** |
+
+**Open:**
+- A person confirms the Run 2 reading (tick the box in `docs/llm_manual_review.md`).
+- Decide whether to try an `explain-v3` prompt rule against added consequences. That needs another Colab run.
+- Rebuild the Colab bundle (`make llm-bundle`) before the next run, so it carries the new validator.
+
+## Root causes of the run-2 faults, fixed and re-checked (2026-11-14)
+
+**Why:** the user asked for the root cause of each fault instead of a surface fix, and for each fix to be checked.
+
+| Fault seen | Root cause | Fix | Re-checked |
+|---|---|---|---|
+| p02/p07: the model saw a diet flag but not why | `patient_summary` lists fields by hand, so `diet.meals` (and `labs.taken_at`) were silently dropped | Meals and lab dates shown. A test walks every `Patient` field and fails if one is neither shown nor listed in `SUMMARY_OMITS` | p02 "Meals: spinach salad; kale soup", p07 "Meals: grapefruit juice every morning". Removing the meals line makes the test fail |
+| Methotrexate renal flag got the hepatic section first | Label chunker **packed** subsections (8.4+8.5+8.6 in one vector). Measured: the mixed chunk 0.264 vs hepatic 0.256 vs renal alone 0.208 | One subsection per chunk (labels-v3) | 8.6 Renal first, 5.8 Renal Toxicity second |
+| Clozapine smoking passage mixed with anticholinergic and QT text | Long subsections cut **by size**, across topics | Cut at inner headings first ("CYP1A2 and CYP3A4 Inducers"), by size only within a topic; parent headings kept | The smoking chunk holds no anticholinergic text |
+| Clozapine smoking flag: top passage about CYP2D6 | Embeddings weigh drug + "levels" over the factor; nothing required the passage to name it | Lifestyle flags: passages naming the factor take the 2 main slots first (`LIFESTYLE_TERMS`). Vitamin K needs dietary wording, so the antidote section doesn't count | Clozapine: smoking first. Theophylline: "Smokers" first. Warfarin: 5.9 "increased vitamin K intake" + 7.5 "vitamin K in food" |
+| Paper "evidence" that was a table caption with no data (p08) | BioC gives caption, body and footnotes separately; a caption whose table didn't fit beside it was chunked alone (566 of 7,551) | One unit per table: caption and footnotes as the heading of every piece; no body → left out (23 tables), counted by verify (papers-v2) | Under-25-word chunks 566 → 62 (real short conclusions). p08's paper passage now has the table data |
+| Wrong statements (p02, p06, p08, plain p04); 9 in 10 first tries rejected for dose or stop wording | The model paraphrased with nothing tying a claim to a passage, and the evidence's instructions had no allowed place | **explain-v3:** each explanation carries 1–3 quotes copied word for word, checked by new rule 8 then dropped (Report contract unchanged). The prompt says the explanation may only say what its quotes say, keeping their limits; instructions go in quotes. Quotes are required in the guided schema | Offline: verbatim, other-flag and too-short quotes rejected; turning off the verbatim check makes the tests fail. **On the model: needs Colab run 3** |
+
+**Knock-on effects, handled:**
+1. Retrieval got better, not worse: 28/28 with the label passage now 28/28 (was 27/28). MRR 0.692 → 0.798 and 0.718 → 0.801.
+2. My first unpacking alone broke the clozapine gold case (27/28). That exposed the size-cut cause in row 3. I fixed that rather than adjusting the gold.
+3. Re-chunking renumbered label chunks. 35 of the 51 curated quotes pointed at old IDs. The quote text is unchanged, so each was re-pointed to the chunk of the same label that contains it. Curation verify: 682/682. Rows are still drafts awaiting approval.
+4. `patient_summary` fixtures and the UI's scripted model answer were updated. The template fallback is judged without quotes, since it is built from the flags.
+
+**How it was checked:**
+
+| Check | Result |
+|---|---|
+| `make verify-chunks`, `verify-paper-chunks`, `verify-store`, `verify-curation`, `verify-cpic`, `verify-llm`, `verify-ui` | All pass |
+| `make eval-flags` | 28/28 (label 28/28, CPIC 11/11) |
+| `make eval-retrieval` | 28/28 both models; MRR 0.798 / 0.801 |
+| `make check` | Lint clean, all tests pass |
+
+**Not fixed by code:**
+- Whether v3 actually stops the wrong statements: the bundle is rebuilt (`~/Desktop/llm_bundle.zip`, explain-v3) for Colab run 3.
+- The self-graded evaluation: it needs Person A's real flags and a person's review.
+- The weak celecoxib paper: it is on topic but a small study.
+
+## Handover package (2026-11-14)
+
+**What:** everything Person A needs to download, rebuild and integrate Person B's half.
+- **README rewritten as the handover document:**
+  - status at a glance;
+  - all test and evaluation results;
+  - how the pieces fit;
+  - rebuilding the evidence from a clean clone;
+  - the Colab steps;
+  - integration steps;
+  - known faults and limitations;
+  - open questions;
+  - sources and licences;
+  - layout and decisions.
+- **Questions file, new section H (8 items):** H1 chunk IDs changed; H2 lifestyle values; H3 pass meals through; H4 show quotes later; H5 guided JSON; H6 real flags and gold cases; H7 who confirms the manual review; H8 rule-6 strictness.
+  - Also fixed: E2's licence is Licence Ouverte 2.0, not 1.0.
+  - Open: 13 (⭐ 6).
+- **Makefile:** help texts said 26 gold cases; there are 28.
+- **Public repository:** `drug-safety-rag`. `data/` and `.env` are not in it; the commands rebuild them. A secrets and personal-data scan of tracked files found nothing.
+
+**Checked:** `make check`: lint clean, 369 tests pass with the database up (6 database tests skip without it).

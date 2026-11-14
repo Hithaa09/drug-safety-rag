@@ -29,6 +29,7 @@ from drug_safety.config import Settings, get_settings
 from drug_safety.contracts import EvidenceChunk, Flag
 
 FIXTURES = Path("tests/llm/fixtures")
+MANUAL_REVIEW = Path("docs/llm_manual_review.md")
 MODULE_TESTS = ["contracts", "ingest", "rag", "llm", "ui", "evaluation"]
 PAPERS_REQUIRED = 500  # spec definition of done, item 2
 
@@ -93,7 +94,9 @@ def rejudge(case_file: dict, finder) -> dict | None:
         from drug_safety.llm.prompts import evidence_labels, resolve_labels
 
         text = resolve_labels(a["answer"], evidence_labels(flags, evidence))
-        _, issues = validate(text, flags, evidence, summary, finder)
+        # quotes are required from explain-v3 on; earlier runs are judged without them
+        old = case_file["result"].get("prompt_version") in ("explain-v1", "explain-v2")
+        _, issues = validate(text, flags, evidence, summary, finder, require_quotes=not old)
         verdicts.append(sorted({i.rule for i in issues}))
     return {"first_ok": verdicts[0] == [], "any_ok": any(v == [] for v in verdicts)}
 
@@ -196,11 +199,30 @@ def module_tests() -> dict[str, str]:
     return out
 
 
+def review_status(runs: list[dict], review_text: str) -> tuple[str, str]:
+    """Item 5: has the latest run with the current prompt been read (docs/llm_manual_review.md
+    has a "## Run N: <its date>" section), and has a person confirmed that reading?"""
+    current = sorted(r["run"].split("_llm_eval")[0] for r in runs if r["current_prompt"])
+    if not current:
+        return ("PENDING", "Needs a Colab run with the current prompt, then the manual review "
+                "(docs/llm_manual_review.md)")  # fmt: skip
+    day = current[-1]
+    section = next((s for s in review_text.split("\n## ")[1:] if day in s.splitlines()[0]), None)
+    if section is None:
+        return ("CHECK", f"Run {day} not yet reviewed: read its review.md and record it in "
+                "docs/llm_manual_review.md")  # fmt: skip
+    if "**Confirmed by a person:** ☐" in section:
+        return ("REVIEWED, TO CONFIRM", f"Run {day} read (docs/llm_manual_review.md): no "
+                "invented drug, dose or number; wrong or unsupported statements listed there. "
+                "A person still has to confirm the reading")  # fmt: skip
+    return ("REVIEWED", f"Run {day} read and confirmed (docs/llm_manual_review.md)")
+
+
 def definition_of_done(
-    ret: dict, runs: list[dict], papers: int, tests: dict, docs: dict
+    ret: dict, runs: list[dict], papers: int, tests: dict, docs: dict, review_text: str = ""
 ) -> list[tuple]:
     """(item, status, detail). Person B's items of the spec's definition of done."""
-    current = [r for r in runs if r["current_prompt"]]
+    item5 = review_status(runs, review_text)
     rows = [
         ("2. At least 500 papers in documents, chunked and embedded",
          "PASS" if papers >= PAPERS_REQUIRED else "ACCEPTED DEVIATION",
@@ -209,15 +231,12 @@ def definition_of_done(
         ("4. For every gold flag, the expected guideline or label chunk is in the top 3",
          "PASS" if ret["hit"] == ret["cases"] and not ret["failures"] else "FAIL",
          f"{ret['hit']}/{ret['cases']} (label {ret['label_hit']}/{ret['cases']}, CPIC "
-         f"{ret['cpic_hit']}/{ret['gene_flags']} gene flags). Gold flags are B's 26 hand-written "
+         f"{ret['cpic_hit']}/{ret['gene_flags']} gene flags). Gold flags are B's "
+         f"{ret['cases']} hand-written "
          "engine-style flags until Person A's gold set exists"),
         ("5. Validated LLM output adds no drug, interaction or suggestion beyond the flags and "
          "evidence",
-         "PENDING" if not current else "CHECK",
-         "Needs a Colab run with the current prompt, then the manual review "
-         "(docs/llm_manual_review.md). Run 1 (older prompt): no invented claims in 15 answers"
-         if not current else "Read the latest run's review.md and record it in "
-         "docs/llm_manual_review.md"),
+         *item5),
         ("6. One patient JSON goes through the API and the Streamlit screen to a finished report",
          "PENDING",
          "Works through the stand-in API (make verify-ui, 10/10). Waits for Person A's API"),
@@ -277,7 +296,9 @@ def render(ret: dict, runs: list[dict], lat: dict, dod: list[tuple]) -> str:
           f"- **Without the LLM** (retrieval + context, PostgreSQL, {lat['patients']} patients, "
           f"median of 3, warm): mean **{lat['mean_s']} s**, max {lat['max_s']} s. Loading the "
           f"embedding model once at start-up: {lat['model_load_s']} s."]  # fmt: skip
-    latest = runs[-1] if runs else None
+    # the latest run in the mode the app uses (guided JSON by default since run 2)
+    default_mode = [r for r in runs if r["current_prompt"] and r["guided"]]
+    latest = (default_mode or runs)[-1] if runs else None
     if latest:
         llm_s = latest["seconds_per_patient"]
         total = round(lat["mean_s"] + llm_s, 1)
@@ -302,7 +323,8 @@ def main() -> int:
     ret = retrieval(s, embedder)
     runs = llm_runs(s, DrugNameFinder.load(s))
     lat = latency(s, embedder) | {"model_load_s": model_load}
-    dod = definition_of_done(ret, runs, papers_loaded(), module_tests(), module_docs())
+    review = MANUAL_REVIEW.read_text(encoding="utf-8") if MANUAL_REVIEW.exists() else ""
+    dod = definition_of_done(ret, runs, papers_loaded(), module_tests(), module_docs(), review)
     out = s.outputs_dir / f"{date.today():%Y-%m-%d}_evaluation"
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.md").write_text(render(ret, runs, lat, dod), encoding="utf-8")

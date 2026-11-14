@@ -13,9 +13,9 @@ rules:
   severity: moderate
   severity_basis: may be necessary to increase
   evidence:
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:002
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:004
     quote: Tobacco smoke is a moderate inducer of CYP1A2.
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:002
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:004
     quote: It may be necessary to increase the CLOZARIL dose if used concomitantly with inducers of these
       enzymes.
   status: draft
@@ -32,10 +32,10 @@ rules:
   severity: moderate
   severity_basis: dose reduction
   evidence:
-  - chunk_id: dailymed:882657ae-e15b-4c86-a571-b55460bd4726:clinical_pharmacology:021
+  - chunk_id: dailymed:882657ae-e15b-4c86-a571-b55460bd4726:clinical_pharmacology:028
     quote: Tobacco and marijuana smoking appears to increase the clearance of theophylline by induction
       of metabolic pathways.
-  - chunk_id: dailymed:882657ae-e15b-4c86-a571-b55460bd4726:clinical_pharmacology:021
+  - chunk_id: dailymed:882657ae-e15b-4c86-a571-b55460bd4726:clinical_pharmacology:028
     quote: Careful attention to dose reduction and frequent monitoring of serum theophylline concentrations
       are required in patients who stop smoking
   status: draft
@@ -106,9 +106,9 @@ rules:
   severity: moderate
   severity_basis: decreased inr response
   evidence:
-  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:warnings_and_precautions:005
+  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:warnings_and_precautions:009
     quote: 'decreasedINR response: increased vitamin K intake or hereditary warfarin resistance.'
-  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:dosage_and_administration:007
+  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:dosage_and_administration:010
     quote: JANTOVEN has a narrow therapeutic range (index), and its action may be affected by factors
       such as other drugs and dietary vitamin K.
   status: draft
@@ -124,7 +124,7 @@ rules:
   severity: minor
   severity_basis: can interact
   evidence:
-  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:drug_interactions:006
+  - chunk_id: dailymed:19a69a72-ac5d-45d5-a94d-a5aaecbe4730:drug_interactions:008
     quote: Some botanicals and foods can interact with JANTOVEN through CYP450 interactions (e.g., echinacea,
       grapefruit juice, ginkgo, goldenseal, St.
   status: draft
@@ -139,7 +139,7 @@ rules:
   severity: minor
   severity_basis: cyp1a2 inhibitors include
   evidence:
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:001
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:drug_interactions:002
     quote: Moderate or weak CYP1A2 inhibitors include oral contraceptives and caffeine.
   status: draft
 - rule_id: lifestyle_drug:alcohol:heavy:paracetamol
@@ -210,7 +210,7 @@ rules:
   severity: major
   severity_basis: increased with heavy alcohol
   evidence:
-  - chunk_id: dailymed:e942f8db-510f-44d6-acb5-b822196f5e8c:warnings_and_precautions:003
+  - chunk_id: dailymed:e942f8db-510f-44d6-acb5-b822196f5e8c:warnings_and_precautions:005
     quote: The risk of hepatotoxicity is increased with heavy alcohol consumption.
   status: draft
 - rule_id: lifestyle_drug:alcohol:occasional-regular-heavy:codeine
@@ -226,7 +226,7 @@ rules:
   severity: major
   severity_basis: boxed warning
   evidence:
-  - chunk_id: dailymed:010905f9-3bcb-4b50-9fe8-a3ad0010f14c:boxed_warning:001
+  - chunk_id: dailymed:010905f9-3bcb-4b50-9fe8-a3ad0010f14c:boxed_warning:004
     quote: Concomitant use of opioids with benzodiazepines or other central nervous system (CNS) depressants,
       including alcohol, may result in profound sedation, respiratory depression, coma, and death.
   status: draft
@@ -243,7 +243,7 @@ rules:
   severity: major
   severity_basis: boxed warning
   evidence:
-  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:boxed_warning:001
+  - chunk_id: dailymed:a65b4d05-3a1c-4aa1-848a-d20ac9aaf62f:boxed_warning:004
     quote: Concomitant use of opioids with benzodiazepines or other central nervous system (CNS) depressants,
       including alcohol, may result in profound sedation, respiratory depression, coma, and death.
   status: draft
@@ -275,7 +275,7 @@ rules:
   severity: moderate
   severity_basis: increased risk
   evidence:
-  - chunk_id: dailymed:a60cc18b-0631-4cf0-b021-9f52224ece65:warnings_and_precautions:005
+  - chunk_id: dailymed:a60cc18b-0631-4cf0-b021-9f52224ece65:warnings_and_precautions:006
     quote: Patients who consume substantial quantities of alcohol and/or have a history of liver disease
       may be at increased risk for hepatic injury
   status: draft
@@ -320,7 +320,7 @@ rules:
   severity: moderate
   severity_basis: increase the risk
   evidence:
-  - chunk_id: dailymed:00872852-680a-41b3-901b-b991b12a176d:warnings:004
+  - chunk_id: dailymed:00872852-680a-41b3-901b-b991b12a176d:warnings:006
     quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
       concomitant use of oral corticosteroids or anticoagulants, longer duration of NSAID therapy, smoking,
       use of alcohol, older age, and poor general health status.
@@ -336,7 +336,7 @@ rules:
   severity: moderate
   severity_basis: increase the risk
   evidence:
-  - chunk_id: dailymed:ed2a8868-78eb-47b8-8f46-0f70e2891e07:warnings_and_precautions:003
+  - chunk_id: dailymed:ed2a8868-78eb-47b8-8f46-0f70e2891e07:warnings_and_precautions:005
     quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
       longer duration of NSAID therapy; concomitant use of oral corticosteroids, aspirin, anticoagulants,
       or selective serotonin reuptake inhibitors (SSRIs); smoking; use of alcohol; older age; and poor
@@ -354,7 +354,7 @@ rules:
   severity: moderate
   severity_basis: increase the risk
   evidence:
-  - chunk_id: dailymed:ed2a8868-78eb-47b8-8f46-0f70e2891e07:warnings_and_precautions:003
+  - chunk_id: dailymed:ed2a8868-78eb-47b8-8f46-0f70e2891e07:warnings_and_precautions:005
     quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
       longer duration of NSAID therapy; concomitant use of oral corticosteroids, aspirin, anticoagulants,
       or selective serotonin reuptake inhibitors (SSRIs); smoking; use of alcohol; older age; and poor
@@ -373,7 +373,7 @@ rules:
   severity: moderate
   severity_basis: increase the risk
   evidence:
-  - chunk_id: dailymed:2d6675e4-5859-4be2-8037-a20ce9f707aa:warnings_and_precautions:005
+  - chunk_id: dailymed:2d6675e4-5859-4be2-8037-a20ce9f707aa:warnings_and_precautions:006
     quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
       longer duration of NSAID therapy; concomitant use of oral corticosteroids, antiplatelet drugs (such
       as aspirin), anticoagulants; or selective serotonin reuptake inhibitors (SSRIs); smoking; use of
@@ -391,7 +391,7 @@ rules:
   severity: moderate
   severity_basis: increase the risk
   evidence:
-  - chunk_id: dailymed:2d6675e4-5859-4be2-8037-a20ce9f707aa:warnings_and_precautions:005
+  - chunk_id: dailymed:2d6675e4-5859-4be2-8037-a20ce9f707aa:warnings_and_precautions:006
     quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
       longer duration of NSAID therapy; concomitant use of oral corticosteroids, antiplatelet drugs (such
       as aspirin), anticoagulants; or selective serotonin reuptake inhibitors (SSRIs); smoking; use of
@@ -429,7 +429,7 @@ rules:
   severity: moderate
   severity_basis: increase the risk
   evidence:
-  - chunk_id: dailymed:00872852-680a-41b3-901b-b991b12a176d:warnings:004
+  - chunk_id: dailymed:00872852-680a-41b3-901b-b991b12a176d:warnings:006
     quote: Other factors that increase the risk of GI bleeding in patients treated with NSAIDs include
       concomitant use of oral corticosteroids or anticoagulants, longer duration of NSAID therapy, smoking,
       use of alcohol, older age, and poor general health status.
@@ -449,7 +449,7 @@ rules:
   severity: minor
   severity_basis: may be additive
   evidence:
-  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:warnings_and_precautions:006
+  - chunk_id: dailymed:a80fe56f-8d03-423f-8e2a-7ec8c9e5045b:warnings_and_precautions:007
     quote: Inform patients also that the central nervous system depressant effects of Allopurinol Tablets
       may be additive to those of alcohol and other CNS depressants.
   status: draft
@@ -464,7 +464,7 @@ rules:
   severity: minor
   severity_basis: use caution
   evidence:
-  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:boxed_warning:002
+  - chunk_id: dailymed:90876802-0e3a-44c9-9ff7-1754dfbe736a:boxed_warning:003
     quote: Use caution when administering CLOZARIL to patients with a history of seizures or other predisposing
       risk factors for seizure (CNS pathology, medications that lower the seizure threshold, alcohol abuse).
   status: draft

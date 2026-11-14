@@ -74,16 +74,23 @@ def good():
         "summary": "All three prescriptions need review: genotype, a drug interaction and kidney "
         "function each affect one of them.",
         "flags_explained": [
-            {"flag_id": "gene-001", "plain_explanation": "Clopidogrel must be activated by "
-             "CYP2C19. This patient's genotype produces little of the active form, so the "
-             "guideline suggests an alternative antiplatelet.",
-             "evidence_ids": ["cpic-clopidogrel-01"]},
-            {"flag_id": "ddi-001", "plain_explanation": "Omeprazole lowers the active metabolite "
-             "of clopidogrel by about 45%, which may weaken its effect.",
-             "evidence_ids": ["label-clop-ddi"]},
+            {"flag_id": "gene-001", "plain_explanation": "As a CYP2C19 poor metabolizer, this "
+             "patient forms less of clopidogrel's active metabolite, and the guideline "
+             "suggests an alternative antiplatelet.",
+             "evidence_ids": ["cpic-clopidogrel-01"],
+             "quotes": [{"evidence_id": "cpic-clopidogrel-01", "text": "CYP2C19 poor "
+                         "metabolizers form less active metabolite; consider an alternative "
+                         "antiplatelet."}]},
+            {"flag_id": "ddi-001", "plain_explanation": "Omeprazole lowered the active "
+             "metabolite exposure of clopidogrel by 45%.",
+             "evidence_ids": ["label-clop-ddi"],
+             "quotes": [{"evidence_id": "label-clop-ddi", "text": "Omeprazole reduced active "
+                         "metabolite exposure by 45%."}]},
             {"flag_id": "lab-001", "plain_explanation": "The eGFR of 28 is below 30, where the "
-             "metformin label says the drug is contraindicated. Lower kidney function means "
-             "metformin can build up.", "evidence_ids": ["label-met-renal"]},
+             "metformin label says the drug is contraindicated.",
+             "evidence_ids": ["label-met-renal"],
+             "quotes": [{"evidence_id": "label-met-renal", "text": "Metformin is "
+                         "contraindicated in patients with an eGFR below 30 mL/min/1.73 m2."}]},
         ],
         "suggestions_for_clinician_review": [
             {"text": "Consider reviewing the antiplatelet choice, as the guideline advises an "

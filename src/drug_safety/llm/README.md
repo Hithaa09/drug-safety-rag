@@ -1,7 +1,8 @@
 # llm
 
-**Owner:** Person B · **Status:** built; first real Qwen run done on Colab (2026-11-11, prompt
-`explain-v1`); fixes from it made and checked offline (`explain-v2`); **re-run on Colab pending**
+**Owner:** Person B · **Status:** built; two real Qwen runs on Colab (2026-11-11 `explain-v1`,
+2026-11-14 `explain-v2`); root-cause fixes from run 2 made and checked offline (`explain-v3`:
+verbatim quotes, rule 8); **third Colab run pending** to measure them
 ([notebooks/colab_qwen_vllm.ipynb](../../../notebooks/colab_qwen_vllm.ipynb))
 
 ## What it does
@@ -65,10 +66,15 @@ An answer is accepted only if **all** hold. Each failure becomes a message sent 
 | 5 | Every suggestion cites evidence | Checked before the schema, so the error message says so plainly |
 | 6 | No instruction to stop a drug or change a dose | In every field: orders ("Stop X"), modal instructions ("should be discontinued", "dose should be reduced"), and a dose change stated as needed ("dose adjustments are necessary", "a need for dose adjustment", "consider reducing the dosage"). Suggestions must start "Consider reviewing / monitoring / checking / assessing / evaluating / discussing" and may not suggest stopping, switching or changing a dose. Describing the evidence ("the label recommends a lower starting dose", "may require a lower dose") is allowed |
 | 7 | **Added by B**: no number not in the flags, evidence or patient summary | From the spec's prompt rule "never add a dose or number"; counted separately in the evaluation so its cost can be seen |
+| 8 | **Added by B (explain-v3)**: every explanation of a flag with evidence carries 1–3 `quotes`, each word for word from one of that flag's passages | Whitespace, quote marks and bullets normalised; 5–80 words each. Quotes are checked, then dropped: the `Report` contract is unchanged. Rules 4, 6, 7 skip quotes (an exact copy may name alternatives or say "avoid") |
 
-**What it does not catch:** a wrong claim using only allowed words and numbers (e.g. stating the
-wrong direction of an effect). That is what the manual review in `review.md` is for (spec:
-"a manual check of about 10 reports").
+**Why rule 8 (the root cause of run 2's wrong statements):**
+- The model was asked to paraphrase, with nothing tying a claim to a passage, so it filled gaps from its own knowledge. Examples: smoking "increases adverse reactions"; "both drugs interfere with serotonin reuptake".
+- The evidence's own instructions ("avoid", "reduce the dose") were forbidden in the model's words but had no allowed place. So the model kept rewording them, and nearly every first-try rejection was rule 6.
+
+Now the model must copy the sentences it relies on, and the prompt says the explanation may only say what those quotes say. Instructions from the evidence go in the quotes.
+
+**What it does not catch:** a paraphrase that misreads a correct quote. The quote at least shows the reader what the claim rests on. Older runs (explain-v1/v2) are re-judged with `require_quotes=False`. That's what the manual review in `review.md` is for (spec: "a manual check of about 10 reports").
 
 ### Drug names (rule 4): where the list comes from
 `make fetch-drug-names` downloads NLM's Prescribable RxNorm ingredient and brand lists. Names
@@ -108,6 +114,41 @@ by hand.
 
 Re-judged by the new validator, the same 15 answers give 4/10 accepted first try and 7/10 by the
 retry. The next Colab run measures the new prompt itself.
+
+## Second real run (Colab, 2026-11-14)
+
+This run used the same model, server and GPU, with prompt `explain-v2` and CPIC/DPWG evidence. It ran plain and guided JSON on the same
+10 patients. Results are in `data/outputs/2026-11-14_llm_eval/`; the reading is in `docs/llm_manual_review.md`, Run 2.
+
+| | Guided | Plain |
+|---|---|---|
+| Accepted first try / after retry / template | 3 / 7 / 0 | 3 / 4 / 3 |
+| Re-judged by today's validator | 2 / 5 / 2 (+ p02, no retry recorded) | 2 / 3 / 4 (+ p02) |
+| Not valid JSON | 0 | 1 |
+| Seconds per answer | 27 mean, 32 max | 27 mean, 33 max |
+
+**What changed since run 1:**
+- **Answers took half as long:** 55 s down to 27 s. This comes from the E-labels.
+- **No flag was left out:** 4 of 10 first tries left one out in run 1; none did here.
+- **Every first-try rejection is rule 6:** dose or stop wording.
+
+**Decision:** guided JSON is now the default (`MODEL_GUIDED_JSON=true`). Use `eval_llm run --plain` for a plain run.
+
+**Validator gaps found and closed** (pinned by `tests/llm/test_real_answers_run2.py`):
+
+| Phrase | Field | Rejected as |
+|---|---|---|
+| "necessitates a lower starting dose", "requires a lower dose" | any | Dose change needed. Not after "may": "may require a lower dose" describes the label |
+| "adjusting it", "adjusting clopidogrel" | suggestion | Dose change |
+| "considering alternative … therapies" | suggestion | Switch. "Consider reviewing alternative options" is still allowed |
+
+**Not catchable by rules** (manual review): wrong-direction or unsupported statements.
+- p06: smoking "increases adverse reactions".
+- p08: "both drugs interfere with serotonin reuptake".
+- p02: "thrombosis".
+- plain p04: "amlodipine is a strong CYP3A4 inhibitor".
+
+Root cause and fix: explain-v3 (rule 8 above). Not yet measured on the model: that needs the third Colab run.
 
 ## Run
 
@@ -160,7 +201,7 @@ After a model run (`data/outputs/<date>_llm_eval/<label>/`):
 - Record the manual check in [docs/llm_manual_review.md](../../../docs/llm_manual_review.md).
 
 ## Environment variables
-`MODEL_URL`, `MODEL_NAME`, `MODEL_API_KEY` (default `local`), `MODEL_GUIDED_JSON` (false),
+`MODEL_URL`, `MODEL_NAME`, `MODEL_API_KEY` (default `local`), `MODEL_GUIDED_JSON` (true since 2026-11-14; `--plain` on `eval_llm run` turns it off),
 `MODEL_MAX_TOKENS` (1500), `MODEL_TIMEOUT_S` (180), `LLM_CONTEXT_TOKENS` (3500 BGE tokens of
 evidence per patient).
 

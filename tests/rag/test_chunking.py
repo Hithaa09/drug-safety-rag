@@ -46,23 +46,22 @@ def tagger():
     return default_tagger()
 
 
-def test_small_subsections_packed_with_headings(tagger):
+def test_each_subsection_is_its_own_chunk(tagger):
+    """Labels-v3: small subsections are not packed (packing hid 8.6 Renal behind 8.7 Hepatic)."""
     d = doc(
         [
             sec("contraindications", ["4 CONTRAINDICATIONS", "4.1 Active Bleeding"], "Bleeding."),
             sec("contraindications", ["4 CONTRAINDICATIONS", "4.2 Hypersensitivity"], "Allergy."),
         ]
     )
-    [c] = ch.chunk_label(d, words, tagger, "load")
-    assert c.chunk_id == f"{d.doc_id}:contraindications:001"
-    assert c.text == (
-        "clopidogrel | TESTDRUG TABLET | 4 CONTRAINDICATIONS\n\n"
-        "4.1 Active Bleeding\nBleeding.\n\n4.2 Hypersensitivity\nAllergy."
+    a, b = ch.chunk_label(d, words, tagger, "load")
+    assert [a.chunk_id, b.chunk_id] == [f"{d.doc_id}:contraindications:001",
+                                        f"{d.doc_id}:contraindications:002"]  # fmt: skip
+    assert (
+        a.text
+        == "clopidogrel | TESTDRUG TABLET | 4 CONTRAINDICATIONS\n\n4.1 Active Bleeding\nBleeding."
     )
-    assert c.headings == [
-        ["4 CONTRAINDICATIONS", "4.1 Active Bleeding"],
-        ["4 CONTRAINDICATIONS", "4.2 Hypersensitivity"],
-    ]
+    assert b.headings == [["4 CONTRAINDICATIONS", "4.2 Hypersensitivity"]]
 
 
 def test_top_level_sections_never_mixed_and_numbered_separately(tagger):
@@ -77,17 +76,17 @@ def test_top_level_sections_never_mixed_and_numbered_separately(tagger):
     assert [c.chunk_id.rsplit(":", 2)[1:] for c in out] == [
         ["contraindications", "001"],
         ["drug_interactions", "001"],
+        ["drug_interactions", "002"],
     ]
 
 
-def test_packing_stops_near_target(tagger):
+def test_no_chunk_mixes_subsections(tagger):
     subs = [
-        sec("drug_interactions", ["7 DRUG INTERACTIONS", f"7.{i} X"], sentences(20))
+        sec("drug_interactions", ["7 DRUG INTERACTIONS", f"7.{i} X"], sentences(5))
         for i in range(1, 6)
-    ]  # about 120 words each
+    ]
     out = ch.chunk_label(doc(subs), words, tagger, "load")
-    assert len(out) > 1
-    assert all(c.token_count <= ch.TARGET_TOKENS for c in out)
+    assert len(out) == 5 and all(len(c.headings) == 1 for c in out)
 
 
 def test_long_subsection_split_with_heading_repeated(tagger):
@@ -283,3 +282,39 @@ def test_verify_catches_stale_class_tags(tmp_path, tagger):
         c.name for c in ch.verify(settings, words, tagger, gold=[], gold_classes=[]) if not c.ok
     }
     assert "tags match the current dictionaries (drugs, genes, classes)" in failed
+
+
+def test_long_subsection_cut_at_inner_headings_first(tagger):
+    """A long subsection is cut where its topics change, not only by size (the clozapine smoking
+    paragraph shared a chunk with anticholinergic and QT paragraphs)."""
+    text = "\n\n".join([
+        "Clozapine is a substrate for many enzymes.",
+        "CYP1A2 Inhibitors", sentences(40, "inhibit"),
+        "CYP1A2 and CYP3A4 Inducers", "Tobacco smoke is a moderate inducer of CYP1A2.",
+        "Anticholinergic Drugs", sentences(40, "anticholinergic"),
+    ])  # fmt: skip
+    d = doc([sec("drug_interactions", ["7 DRUG INTERACTIONS", "7.1 Other Drugs"], text)])
+    out = ch.chunk_label(d, words, tagger, "load")
+    smoke = [c for c in out if "Tobacco" in c.text]
+    assert len(smoke) == 1 and "anticholinergic" not in smoke[0].text
+    assert smoke[0].headings == [["7 DRUG INTERACTIONS", "7.1 Other Drugs",
+                                  "CYP1A2 and CYP3A4 Inducers"]]  # fmt: skip
+    assert "7.1 Other Drugs > CYP1A2 and CYP3A4 Inducers\nTobacco" in smoke[0].text
+    assert all(c.token_count <= ch.MAX_TOKENS for c in out)
+
+
+@pytest.mark.parametrize(
+    "block, heading",
+    [("CYP2C19 inhibitors", True), ("Risk Summary", True), ("Nursing Mothers:", True),
+     ("Table 1", False), ("Tobacco smoke is an inducer.", False), ("a | b", False),
+     ("6.1\n,\n6.2", False)],
+)  # fmt: skip
+def test_inner_heading_detection(block, heading):
+    assert ch.is_inner_heading(block) is heading
+
+
+def test_parent_inner_heading_kept_with_its_first_topic():
+    text = "Intro text.\n\nDrug Interaction Studies\n\nEffect on Other Drugs\n\nSome effect."
+    assert ch.topics(text) == [("", "Intro text."),
+                               ("Drug Interaction Studies > Effect on Other Drugs",
+                                "Some effect.")]  # fmt: skip

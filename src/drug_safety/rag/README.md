@@ -6,7 +6,7 @@
 |---|---|---|
 | Label chunking | [`chunking.py`](chunking.py) | **Done**, verified 2026-11-11 |
 | Drug and gene tagging | [`tagging.py`](tagging.py) | **Done** (temporary dictionary until Person A's `drug_alias`) |
-| Paper chunking | [`chunk_papers.py`](chunk_papers.py) | **Done**: 7,551 chunks from 344 papers |
+| Paper chunking | [`chunk_papers.py`](chunk_papers.py) | **Done**: 6,933 chunks from 344 papers |
 | CPIC guideline chunking | [`chunk_cpic.py`](chunk_cpic.py) | **Done**: 171 chunks, one per recommendation (step 6d; see `ingest/README.md`) |
 | Embedding model choice | [`embeddings.py`](embeddings.py), [`eval_retrieval.py`](eval_retrieval.py) | **Done**: `bge-base-en-v1.5` kept (26/26 gold cases) |
 | Embeddings in the database | [`store.py`](store.py), [`../db.py`](../db.py) | **Done**: 998 chunks in `kb.evidence_chunks`, 26/26 gold cases via SQL |
@@ -29,11 +29,14 @@ label text behind it.
    It **drops** patient leaflets (they repeat the prescribing text), chemistry, packaging,
    animal studies, reference lists and clinical-trial narratives. The full list, with a reason
    for each, is in `KEEP_SECTIONS` and `DROP_SECTIONS` in `chunking.py`.
-2. **Packs small subsections together** (for example 4.1 and 4.2 Contraindications) up to about
-   400 tokens, each keeping its own heading. Two different top-level sections are never mixed in
-   one chunk.
-3. **Splits long subsections** at paragraph, then line, then sentence boundaries. Every piece
-   repeats the subsection heading.
+2. **One topic per chunk (labels-v3, 2026-11-14).** Each subsection is its own chunk; small
+   subsections are no longer packed together. Packing mixed topics in one vector: methotrexate
+   8.4 Pediatric + 8.5 Geriatric + 8.6 Renal in one chunk ranked below 8.7 Hepatic for a renal
+   flag (distance 0.264 vs 0.256; 8.6 alone: 0.208).
+3. **Splits long subsections where their topic changes first**, at inner headings ("CYP1A2 and
+   CYP3A4 Inducers", "Renal Impairment"), then, if a topic is still too long, at paragraph, line
+   and sentence boundaries. Every piece repeats the subsection and inner heading. Cut by size
+   alone, clozapine's smoking paragraph shared a chunk with anticholinergic and QT paragraphs.
 4. **Splits long tables by rows.** Every piece repeats the table title (marked "(continued)") and
    the header row, so no chunk holds numbers without their column names.
 5. **Starts every chunk with a context line**, e.g.
@@ -121,7 +124,7 @@ One chunk (shortened):
   "token_count": 370,
   "source_version": "5",
   "license": "DailyMed (NLM) SPL; see DailyMed terms of service",
-  "chunker_version": "labels-v2",
+  "chunker_version": "labels-v3",
   "load_id": "chunks-dailymed-20261111T...",
   "embedding": null,
   "embedding_model": null
@@ -171,9 +174,11 @@ One chunk (shortened):
 
 | Test | Proves |
 |---|---|
-| `test_small_subsections_packed_with_headings` | Small subsections share a chunk, each with its heading, plus the context line |
+| `test_each_subsection_is_its_own_chunk` | Small subsections are not packed together |
 | `test_top_level_sections_never_mixed_and_numbered_separately` | Sections never mix; IDs count per section |
-| `test_packing_stops_near_target` | Packing respects the 400-token target |
+| `test_no_chunk_mixes_subsections` | No chunk holds two subsections |
+| `test_long_subsection_cut_at_inner_headings_first` | A long subsection is cut where its topic changes; the smoking topic gets its own chunk |
+| `test_inner_heading_detection`, `test_parent_inner_heading_kept_with_its_first_topic` | What counts as an inner heading; a parent heading is kept |
 | `test_long_subsection_split_with_heading_repeated` | Long text is split under the limit, and every piece keeps its heading |
 | `test_long_table_split_repeats_caption_and_header` | Long tables keep their title and header in every piece; no row lost; notes at the end |
 | `test_dropped_and_unknown_sections` | Dropped sections are skipped; an unknown section type stops the run |
@@ -228,8 +233,10 @@ model if retrieval quality is poor.
 - **Harder test without the drug filter** (all 998 chunks): 25/26. The one miss was an
   atorvastatin grapefruit question answered by simvastatin's grapefruit passage, which shows why
   the spec filters by drug first.
-- Several first results are packed chunks whose relevant subsection isn't the first heading
-  (for example methotrexate 8.4–8.6, where 8.6 is Renal Impairment). That's expected and correct.
+- Several first results were packed chunks whose relevant subsection wasn't the first heading
+  (for example methotrexate 8.4–8.6, where 8.6 is Renal Impairment). I called this "expected and
+  correct" at the time; the second Colab review showed it wasn't (the renal flag got the hepatic
+  section first). Fixed by one topic per chunk (above): MRR 0.692 -> 0.798, label passage 28/28.
 
 **Decision:** keep `BAAI/bge-base-en-v1.5` (768 dimensions), **without** the query instruction.
 
@@ -351,7 +358,14 @@ Same design as label chunks, with three differences:
   the label check (whole sentences) can't tell "split" from "lost". A test deletes one real
   chunk and the check must fail.
 
-Result: 344 papers → 7,551 chunks (median 284 tokens, max 478), all tagged with a drug.
+- **a table is one unit (papers-v2, 2026-11-14):** BioC gives caption, body and footnotes as
+  separate passages. Chunked one by one, a caption whose table didn't fit beside it went out
+  alone: 566 of 7,551 chunks were a caption or a footnote with no data. Now caption and
+  footnotes are the table's heading, repeated on every piece; a caption with no table body
+  (23 tables, whose BioC has none) is left out and counted by verify.
+
+Result: 344 papers → 6,933 chunks (median 322 tokens, max 478), all tagged with a drug.
+Chunks with under 25 words of body: 566 → 62 (short conclusions, not orphaned captions).
 
 # Retrieval selection: tier-balanced (changed 2026-11-11)
 
@@ -422,6 +436,12 @@ context = build_context(evidence, max_tokens=..., count=token_counter)  # for th
    slot (when there is no paper) still goes by plain distance: own-first there replaced a
    methotrexate passage with an unrelated antiretroviral one. Measured on all 26 gold flags:
    only the warfarin flag changed.
+   **A lifestyle flag's factor must be named (2026-11-14):** in the same 2 slots, a passage
+   that names the factor (`LIFESTYLE_TERMS`: smoking/tobacco, alcohol, grapefruit, dietary
+   vitamin K) comes before one that doesn't. Without it, clozapine + smoking got a CYP2D6
+   passage first ("higher plasma concentrations of clozapine"): the embedding weighs the drug
+   and "levels" over the factor. The vitamin K pattern asks for dietary wording, so warfarin's
+   antidote section (10.2 Treatment) doesn't count.
 4. **Class fallback**: if no chunk names the drug, search `class_drugs` (e.g. a label passage on
    "NSAIDs" for an ibuprofen flag); those chunks are marked `via_class=True`.
 5. **`build_context`** fits all flags' evidence into a token budget, dropping papers first, then the

@@ -96,3 +96,50 @@ def test_retry_appends_answer_and_errors(flags, evidence):
     r = add_errors(m, "{bad}", ["rule 2: flag x"])
     assert r[:2] == m and r[2] == {"role": "assistant", "content": "{bad}"}
     assert "rule 2: flag x" in r[3]["content"]
+
+
+def _leaves(model, prefix=""):
+    """Every leaf field path of a contract model, e.g. 'lifestyle.diet.meals'."""
+    from pydantic import BaseModel
+
+    for name, f in model.model_fields.items():
+        ann = f.annotation
+        inner = getattr(ann, "__args__", (ann,))
+        sub = next((a for a in inner if isinstance(a, type) and issubclass(a, BaseModel)), None)
+        if isinstance(ann, type) and issubclass(ann, BaseModel):
+            sub = ann
+        yield from _leaves(sub, f"{prefix}{name}.") if sub else [f"{prefix}{name}"]
+
+
+def test_summary_shows_every_patient_field():
+    """Root fix for the dropped meals: a patient with every field set to a marked value. Each
+    value must reach the summary, except fields listed in SUMMARY_OMITS. A new contract field
+    fails here until it is shown or listed."""
+    from drug_safety.llm.prompts import SUMMARY_OMITS
+
+    p = Patient.model_validate({
+        "patient_id": "PID-9", "age": 61, "sex": "female",
+        "prescriptions": [{"name": "Coumadin", "dose": "5 mg", "frequency": "daily",
+                           "status": "new"}],
+        "labs": [{"test": "INR", "value": 2.7, "unit": "ratio", "taken_at": "2026-11-01"}],
+        "genotypes": [{"gene": "CYP2C9", "diplotype": "*3/*3"}],
+        "lifestyle": {"smoking": "former", "alcohol": "occasional",
+                      "diet": {"type": "non_veg", "meals": ["kale soup"]}},
+        "weight_kg": 58.5, "conditions": ["benign_ethnic_neutropenia"],
+    })  # fmt: skip
+    s = patient_summary(p)
+    shown = {
+        "age": "61", "sex": "female", "prescriptions.name": "Coumadin",
+        "prescriptions.dose": "5 mg", "prescriptions.frequency": "daily",
+        "prescriptions.status": "(new)", "labs.test": "INR", "labs.value": "2.7",
+        "labs.unit": "ratio", "labs.taken_at": "2026-11-01", "genotypes.gene": "CYP2C9",
+        "genotypes.diplotype": "*3/*3", "lifestyle.smoking": "former",
+        "lifestyle.alcohol": "occasional", "lifestyle.diet.type": "non_veg",
+        "lifestyle.diet.meals": "kale soup", "weight_kg": "58.5",
+        "conditions": "benign ethnic neutropenia",
+    }  # fmt: skip
+    fields = set(_leaves(Patient))
+    assert fields - SUMMARY_OMITS == set(shown), "a Patient field is neither shown nor omitted"
+    for field, value in shown.items():
+        assert value in s, field
+    assert "PID-9" not in s

@@ -96,3 +96,30 @@ def test_verify_detects_a_missing_chunk(monkeypatch):
         if not c.ok
     }
     assert "no text lost from kept sections (8-word windows)" in failed
+
+
+def test_table_caption_stays_with_its_body_and_empty_tables_are_dropped():
+    """papers-v2: a caption was chunked alone when its table didn't fit beside it."""
+    body = " | ".join(f"cell{i}" for i in range(300))  # too big to share a chunk
+    sections = [
+        sec("RESULTS", "Clopidogrel response was lower.", "Results"),
+        sec("TABLE", "Table 2. Platelet reactivity by CYP2C19 phenotype", "Results",
+            kind="table_caption"),
+        sec("TABLE", body, "Results", kind="table"),
+        sec("TABLE", "Values are mean (SD).", "Results", kind="table_footnote"),
+        sec("TABLE", "Table 3. Caption whose table BioC does not give", "Results",
+            kind="table_caption"),
+        sec("TABLE", "n, number of subjects.", "Results", kind="table_foot"),
+    ]  # fmt: skip
+    units = cp.table_units(sections)
+    assert [u.kind for u in units] == ["paragraph", "table"]  # table 3 had no body: dropped
+    assert units[1].heading == ("Table 2. Platelet reactivity by CYP2C19 phenotype "
+                                "Values are mean (SD).")  # fmt: skip
+    assert units[1].text == body
+    chunks = cp.chunk_paper(doc(sections), words, default_tagger(), "l")
+    tables = [c for c in chunks if c.section == "table"]
+    assert len(tables) >= 2  # the big table was split ...
+    for c in tables:  # ... and every piece carries the caption and real data
+        assert "Table 2. Platelet reactivity" in c.text and "mean (SD)" in c.text
+        assert "cell" in c.text
+    assert not any("Table 3" in c.text for c in chunks)

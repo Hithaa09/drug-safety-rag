@@ -51,7 +51,7 @@ def test_real_answer_verdicts(name, finder):
     c, flags, ev = _case(name)
     assert len(c["answers"]) == len(EXPECTED[name])
     for n, (answer, want) in enumerate(zip(c["answers"], EXPECTED[name], strict=True), 1):
-        report, issues = validate(answer, flags, ev, c["summary"], finder)
+        report, issues = validate(answer, flags, ev, c["summary"], finder, require_quotes=False)
         got = {i.rule for i in issues}
         assert got == want, f"attempt {n}: {[i.message for i in issues]}"
         assert (report is not None) == (not want)
@@ -60,9 +60,9 @@ def test_real_answer_verdicts(name, finder):
 def test_the_messages_name_the_problem(finder):
     c, flags, ev = _case("p09-tramadol-theophylline")
     msgs = " ".join(i.message for i in validate(c["answers"][0], flags, ev, c["summary"],
-                                                finder)[1])  # fmt: skip
+                                                finder, require_quotes=False)[1])  # fmt: skip
     assert "Dose adjustments are necessary" in msgs and "need for dose adjustment" in msgs
     c, flags, ev = _case("p01-worked-example")
     msgs = " ".join(i.message for i in validate(c["answers"][1], flags, ev, c["summary"],
-                                                finder)[1])  # fmt: skip
+                                                finder, require_quotes=False)[1])  # fmt: skip
     assert "Consider alternative" in msgs

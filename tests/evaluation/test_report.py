@@ -80,3 +80,18 @@ def test_render_without_runs_says_so():
     lat = {"patients": 10, "mean_s": 0.09, "max_s": 0.12, "model_load_s": 12.0}
     text = render(RET, [], lat, definition_of_done(RET, [], 344, TESTS_OK, DOCS_OK))
     assert "No Colab run found" in text and "**26/26**" in text and "**ACCEPTED DEVIATION**" in text
+
+
+def test_item5_follows_the_manual_review():
+    from drug_safety.evaluation.report import review_status
+
+    run = {"run": "2026-11-14_llm_eval/guided", "current_prompt": True}
+    old = {"run": "2026-11-11_llm_eval/plain", "current_prompt": False}
+    assert review_status([old], "")[0] == "PENDING"
+    assert review_status([old, run], "## Run 1: 2026-11-11, x\n")[0] == "CHECK"
+    doc = "# t\n\n## Run 2: 2026-11-14, x\n**Confirmed by a person:** ☐ (pending)\n"
+    assert review_status([old, run], doc)[0] == "REVIEWED, TO CONFIRM"
+    confirmed = doc.replace("☐ (pending)", "☑ A. Name, 2026-11-15")
+    assert review_status([run], confirmed)[0] == "REVIEWED"
+    rows = definition_of_done(RET, [run], 344, TESTS_OK, DOCS_OK, doc)
+    assert status(rows, "5.") == "REVIEWED, TO CONFIRM"

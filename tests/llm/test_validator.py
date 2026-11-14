@@ -13,9 +13,9 @@ from drug_safety.llm.validator import instruction_problems, numbers, validate
 from .conftest import SUMMARY
 
 
-def run(answer, flags, evidence, finder, summary=SUMMARY):
+def run(answer, flags, evidence, finder, summary=SUMMARY, require_quotes=True):
     text = answer if isinstance(answer, str) else json.dumps(answer)
-    return validate(text, flags, evidence, summary, finder)
+    return validate(text, flags, evidence, summary, finder, require_quotes)
 
 
 def rules(issues):
@@ -29,7 +29,9 @@ def test_good_answer_passes(good, flags, evidence, finder):
 
 def test_spec_p19_example_passes_for_its_flag(flags, evidence, finder):
     p19 = Path("tests/contracts/spec_examples/report_p19.json").read_text()
-    report, issues = run(p19, flags[:1], {"gene-001": evidence["gene-001"]}, finder)
+    # the spec's example has no quotes (explain-v3 adds them, checked, then dropped)
+    report, issues = run(p19, flags[:1], {"gene-001": evidence["gene-001"]}, finder,
+                         require_quotes=False)  # fmt: skip
     assert issues == [], issues
 
 
@@ -112,6 +114,7 @@ def test_duplicate_explanation_rejected(good, flags, evidence, finder):
 def test_flag_without_evidence_must_be_named_in_uncertainties(good, flags, evidence, finder):
     evidence["lab-001"] = []
     good[E][2]["evidence_ids"] = []
+    good[E][2]["quotes"] = []  # nothing to quote
     good[S] = good[S][:1]
     good[E][2]["plain_explanation"] = "The eGFR of 28 is below the limit of 30."
     assert rules(run(good, flags, evidence, finder)[1]) == [3]
@@ -163,10 +166,95 @@ def test_review_suggestions_pass(text):
     assert instruction_problems(text, suggestion=True) == []
 
 
+@pytest.mark.parametrize(
+    "text, suggestion",
+    [  # second Colab run: accepted by that run's validator, wrongly
+        ("Reduced kidney function necessitates a lower starting dose of allopurinol.", False),
+        ("The patient requires a lower dose of warfarin.", False),
+        ("Consider reviewing the dosing of phenytoin and adjusting it as needed.", True),
+        ("Consider monitoring the response and adjusting clopidogrel if necessary.", True),
+        (
+            "Consider checking the eGFR and considering alternative glucose-lowering therapies.",
+            True,
+        ),
+    ],
+)
+def test_second_run_instructions_rejected(text, suggestion):
+    assert instruction_problems(text, suggestion=suggestion)
+
+
+@pytest.mark.parametrize(
+    "text, suggestion",
+    [
+        ("The label says patients may require a lower dose.", False),
+        ("Smoking is lowering clozapine levels.", False),
+        ("Consider reviewing alternative options described in the guideline.", True),
+        ("Consider monitoring theophylline levels to ensure appropriate dosing.", True),
+        ("Consider monitoring for myopathy, as increasing exposure raises the risk.", True),
+    ],
+)
+def test_second_run_rules_keep_descriptions_and_reviews(text, suggestion):
+    assert instruction_problems(text, suggestion=suggestion) == []
+
+
 def test_template_fallback_passes_the_validator(flags, evidence, finder):
     report = fallback_report(flags, evidence)
-    assert run(report.model_dump_json(), flags, evidence, finder)[1] == []
+    # the template is not model output: it quotes nothing
+    assert run(report.model_dump_json(), flags, evidence, finder, require_quotes=False)[1] == []
     evidence["lab-001"] = []
     report = fallback_report(flags, evidence)
-    assert run(report.model_dump_json(), flags, evidence, finder)[1] == []
+    assert run(report.model_dump_json(), flags, evidence, finder, require_quotes=False)[1] == []
     assert any("lab-001" in u for u in report.uncertainties)
+
+
+# ---------------------------------------------------------------- rule 8: quotes (explain-v3)
+
+
+def test_quotes_must_be_word_for_word_from_that_flags_evidence(good, flags, evidence, finder):
+    q = good[E][1]["quotes"][0]
+    # whitespace, a line break and curly quotes don't matter
+    q["text"] = "Omeprazole reduced active\nmetabolite   exposure by 45%."
+    assert run(good, flags, evidence, finder)[1] == []
+    for bad, why in [
+        ("Omeprazole strongly reduced active metabolite exposure by 45%.", "not word for word"),
+        ("Omeprazole reduced exposure.", "words"),  # too short to prove anything
+    ]:
+        q["text"] = bad
+        issues = run(good, flags, evidence, finder)[1]
+        assert rules(issues) == [8] and why in issues[0].message, bad
+    q.update(
+        evidence_id="cpic-clopidogrel-01",
+        text="CYP2C19 poor metabolizers form less "
+        "active metabolite; consider an alternative antiplatelet.",
+    )  # gene-001's passage
+    assert "not supplied for ddi-001" in run(good, flags, evidence, finder)[1][0].message
+
+
+def test_explanation_with_evidence_needs_a_quote(good, flags, evidence, finder):
+    good[E][0]["quotes"] = []
+    issues = run(good, flags, evidence, finder)[1]
+    assert rules(issues) == [8] and "has no quotes" in issues[0].message
+    good[E][0]["quotes"] = [good[E][1]["quotes"][0]] * 4
+    assert any("at most 3" in i.message for i in run(good, flags, evidence, finder)[1])
+
+
+def test_quotes_may_name_alternatives_and_doses_and_are_dropped(good, flags, evidence, finder):
+    """A verbatim copy of the evidence is exempt from rules 4, 6, 7 (names prasugrel, says
+    avoid): the quote is the allowed place for the evidence's own instructions."""
+    evidence["ddi-001"][0] = evidence["ddi-001"][0].model_copy(
+        update={
+            "text": (
+                "Avoid concomitant use of Plavix with omeprazole. Use prasugrel 10 mg instead."
+            )
+        }
+    )
+    good[E][1]["quotes"] = [{"evidence_id": "label-clop-ddi", "text": "Avoid concomitant use "
+                             "of Plavix with omeprazole."},
+                            {"evidence_id": "label-clop-ddi", "text": "Use prasugrel 10 mg "
+                             "instead."}]  # fmt: skip
+    good[E][1]["plain_explanation"] = "The label advises against taking omeprazole with it."
+    report, issues = run(good, flags, evidence, finder)
+    assert issues == [], issues  # "Avoid", "prasugrel", "10" are fine inside a quote
+    assert not hasattr(report.flags_explained[1], "quotes")  # the Report contract is unchanged
+    good[E][1]["plain_explanation"] = "Use prasugrel 10 mg instead."  # same words, own voice
+    assert rules(run(good, flags, evidence, finder)[1]) == [4]  # 10 is in the evidence: ok

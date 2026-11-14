@@ -2,7 +2,7 @@
 
     python -m drug_safety.llm.eval_llm build     # Mac, needs PostgreSQL: freeze the evidence
     python -m drug_safety.llm.eval_llm verify    # offline: cases, prompt sizes, fallback valid
-    python -m drug_safety.llm.eval_llm run [--guided] [--label NAME]   # needs the model server
+    python -m drug_safety.llm.eval_llm run [--plain] [--label NAME]   # needs the model server
     python -m drug_safety.llm.eval_llm bundle    # zip for running `run` inside Colab
 
 `build` runs the real retriever for each patient's flags (tests/gold/llm_cases.yaml), trims the
@@ -156,7 +156,15 @@ def verify(settings: Settings) -> list[tuple[str, bool, str]]:
     bad = []
     for c in cases:
         fb = fallback_report(c["flags"], c["evidence"])
-        _, issues = validate(fb.model_dump_json(), c["flags"], c["evidence"], c["summary"], finder)
+        # the template is built from the flags, not by the model: it quotes nothing
+        _, issues = validate(
+            fb.model_dump_json(),
+            c["flags"],
+            c["evidence"],
+            c["summary"],
+            finder,
+            require_quotes=False,
+        )
         bad += [f"{c['case']}: {i.message}" for i in issues]
     add("template fallback passes the validator for every patient", not bad, str(bad[:5]))
     return checks
@@ -284,7 +292,9 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="python -m drug_safety.llm.eval_llm")
     p.add_argument("cmd", choices=["build", "verify", "run", "bundle"])
     p.add_argument("--label", default=None, help="run: output folder name")
-    p.add_argument("--guided", action="store_true", help="run: constrain output to the schema")
+    mode = p.add_mutually_exclusive_group()
+    mode.add_argument("--guided", action="store_true", help="run: constrain output to the schema")
+    mode.add_argument("--plain", action="store_true", help="run: no schema constraint")
     p.add_argument("--limit", type=int, default=None, help="run: first N patients only")
     p.add_argument("--cases", type=Path, default=None, help="run: frozen cases file")
     args = p.parse_args(argv)
@@ -307,8 +317,8 @@ def main(argv: list[str] | None = None) -> int:
     if args.cmd == "bundle":
         print(f"written {bundle(settings)}")
         return 0
-    if args.guided:
-        settings = settings.model_copy(update={"model_guided_json": True})
+    if args.guided or args.plain:
+        settings = settings.model_copy(update={"model_guided_json": args.guided})
     label = args.label or ("guided" if settings.model_guided_json else "plain")
     run(settings, label, args.limit, args.cases)
     return 0

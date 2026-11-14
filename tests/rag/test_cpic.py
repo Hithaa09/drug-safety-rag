@@ -143,3 +143,24 @@ def test_hla_b_allele_results():
         assert rt.guideline_fits(pm, text(**{"CYP2C9": "Poor Metabolizer", "HLA-B": other}))
     assert not rt.guideline_fits(pm, text(**{"CYP2C9": "Poor Metabolizer",
                                              "HLA-B": "HLA-B*15:02 positive"}))  # fmt: skip
+
+
+def test_lifestyle_flag_prefers_passages_naming_its_factor():
+    smoking = Flag.model_validate(dict(flag_id="life-001", flag_type="lifestyle_drug",
+                                       drug="codeine", severity="moderate", source="label",
+                                       rule_id="lifestyle_drug:smoking:current:codeine",
+                                       reason="Smoking induces CYP1A2: lower levels",
+                                       lifestyle={"factor_type": "smoking",
+                                                  "factor_value": "current"}))  # fmt: skip
+    assert rt.mentions_trigger(smoking, "Tobacco smoke is a moderate inducer of CYP1A2.")
+    assert not rt.mentions_trigger(smoking, "CYP2D6 poor metabolizers have higher levels.")
+    assert rt.mentions_trigger(flag(), "anything")  # gene flags: no such rule
+    chunks = [
+        _chunk("dailymed:x:pk:001", "dailymed", "codeine | X | 12\n\nCYP2D6 poor metabolizers."),
+        _chunk("dailymed:x:di:001", "dailymed", "codeine | X | 7\n\nAnticholinergic drugs."),
+        _chunk("dailymed:x:di:002", "dailymed", "codeine | X | 7\n\nTobacco smoke induces it."),
+    ]
+    vecs = np.stack([_unit(v) for v in ([1, 0.01], [1, 0.02], [1, 0.3])])  # smoking is farthest
+    got = [r.evidence.chunk_id for r in rt.retrieve(smoking, rt.InMemoryRepository(chunks, vecs),
+                                                       Emb())]  # fmt: skip
+    assert got[0] == "dailymed:x:di:002"  # names the factor: first, despite the distance
