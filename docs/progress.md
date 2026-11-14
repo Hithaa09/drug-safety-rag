@@ -892,3 +892,13 @@ result; the screen asks for `*58:01 positive`).
 - **Public repository:** `drug-safety-rag`. `data/` and `.env` are not in it; the commands rebuild them. A secrets and personal-data scan of tracked files found nothing.
 
 **Checked:** `make check`: lint clean, 369 tests pass with the database up (6 database tests skip without it).
+
+## Status and fault tracker (2026-11-14)
+
+New: [status.md](status.md) is one place for:
+- what is done;
+- what is left (14 items, each with an owner and a next step);
+- the 11 open faults, each with its root cause, what was done and what is still needed;
+- every fault fixed so far, with its root cause and the check that guards it, gathered from this log.
+
+The README links to it.

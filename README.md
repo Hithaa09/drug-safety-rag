@@ -240,7 +240,7 @@ copy with no renaming.
 
 ## 7. Known faults and limitations
 
-These are honest and current; fixed faults are listed in `docs/progress.md`.
+These are honest and current. **The full tracker (everything done, everything left with its owner, every open and fixed fault with its root cause) is [docs/status.md](docs/status.md).**
 
 | # | Fault or limitation | Why | What would fix it | Status |
 |---|---|---|---|---|
@@ -342,6 +342,7 @@ The project's own code has no licence file yet; choosing one is the project owne
 
 | Document | What's in it |
 |---|---|
+| [docs/status.md](docs/status.md) | **Done, left (with owners), and every fault: open and fixed, with root causes** |
 | [docs/progress.md](docs/progress.md) | Every step: what was built, how it was checked, what went wrong and how it was fixed |
 | [docs/questions_for_person_a.md](docs/questions_for_person_a.md) | All questions, B's proposals, answers |
 | [docs/llm_manual_review.md](docs/llm_manual_review.md) | Sentence-by-sentence reading of every Colab report |
